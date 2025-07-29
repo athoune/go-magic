@@ -7,13 +7,13 @@ import (
 )
 
 func TestParseOffset(t *testing.T) {
-	o, err := ParseOffset(">>>4")
+	o, err := ParseOffset(">>>", "4")
 	assert.NoError(t, err)
 	assert.Equal(t, 3, o.Level)
 	assert.Equal(t, int64(4), o.Value)
 	assert.False(t, o.Dynamic)
 
-	o, err = ParseOffset(">>(4.s*512)")
+	o, err = ParseOffset(">>", "(4.s*512)")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, o.Level)
 	assert.True(t, o.Dynamic)

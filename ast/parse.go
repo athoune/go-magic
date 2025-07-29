@@ -35,18 +35,10 @@ type Compare struct {
 	Type        Clue
 }
 
-func ParseOffset(txt string) (*Offset, error) {
+func ParseOffset(level, value string) (*Offset, error) {
 	offset := &Offset{}
 	var err error
-	var value string
-	ooo := offset_re.FindStringSubmatch(txt) // looking for > prefix
-	if len(ooo) == 2 {                       // no
-		offset.Level = 0
-		value = ooo[1]
-	} else {
-		offset.Level = len(ooo[1])
-		value = ooo[2]
-	}
+	offset.Level = len(level)
 
 	if strings.HasPrefix(value, "(") {
 		offset.Dynamic = true
@@ -74,6 +66,10 @@ func ParseOffset(txt string) (*Offset, error) {
 }
 
 func ParseCompare(txt string, clue Clue) (*Compare, error) {
+	txt = strings.Trim(txt, "\t ")
+	if len(txt) == 0 {
+		return nil, errors.New("empty compare value")
+	}
 	if txt[0] == 'x' {
 		return nil, nil
 	}
@@ -98,16 +94,17 @@ func ParseCompare(txt string, clue Clue) (*Compare, error) {
 		i++
 	}
 	compare.Type = clue
+	value := strings.Trim(txt[i:], " ")
 	switch {
 	case clue == TYPE_CLUE_STRING:
-		compare.StringValue = txt[i:]
+		compare.StringValue = value
 	case clue == TYPE_CLUE_FLOAT:
-		compare.FloatValue, err = strconv.ParseFloat(txt[i:], 64)
+		compare.FloatValue, err = strconv.ParseFloat(value, 64)
 		if err != nil {
 			return nil, err
 		}
 	case clue == TYPE_CLUE_INT:
-		compare.IntValue, err = strconv.ParseInt(txt[i:], 0, 64)
+		compare.IntValue, err = strconv.ParseInt(value, 0, 64)
 		if err != nil {
 			return nil, err
 		}
