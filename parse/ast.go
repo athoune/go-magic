@@ -9,41 +9,19 @@ import (
 	"github.com/athoune/go-magic/model"
 )
 
-var offset_re *regexp.Regexp
 var spaces_re *regexp.Regexp
 var dynamic_value_re *regexp.Regexp
-var test_re *regexp.Regexp
-var dynamic_type_re *regexp.Regexp
-
-var level_test_idx int
-var offset_test_idx int
-var type_test_idx int
-var compare_test_idx int
-var data_test_idx int
-var modifier_test_idx int
 
 var value_dynamic_idx int
-var separator_dynamic_idx int
 var type_dynamic_idx int
 var operator_dynamic_idx int
 var arg_dynamic_idx int
 
 func init() {
-	offset_re = regexp.MustCompile(`(>*)(.+)`)
 	dynamic_value_re = regexp.MustCompile(`(?<value>(0x)?[0-9a-f]+)((?<separator>[.,])(?<type>[bBcCeEfFgGhHiIlLmsSqQ]))?((?<operator>[+\-*])(?<arg>.*))?`)
 	spaces_re = regexp.MustCompile(`\s+`)
-	// Use https://regex101.com/ for debugging
-	test_re = regexp.MustCompile(`^(?<level>>*)(?<offset>.+?)\s+(?<type>\w+)(?<modifier>[%/]\w+)?[\t ]+(?<compare>[!=><&\^~/%]* ?(\\ |\w)+)([\t ]+(?<data>.+))?$`)
-
-	level_test_idx = test_re.SubexpIndex("level")
-	offset_test_idx = test_re.SubexpIndex("offset")
-	type_test_idx = test_re.SubexpIndex("type")
-	compare_test_idx = test_re.SubexpIndex("compare")
-	data_test_idx = test_re.SubexpIndex("data")
-	modifier_test_idx = test_re.SubexpIndex("modifier")
 
 	value_dynamic_idx = dynamic_value_re.SubexpIndex("value")
-	separator_dynamic_idx = dynamic_value_re.SubexpIndex("separator")
 	type_dynamic_idx = dynamic_value_re.SubexpIndex("type")
 	operator_dynamic_idx = dynamic_value_re.SubexpIndex("operator")
 	arg_dynamic_idx = dynamic_value_re.SubexpIndex("arg")
