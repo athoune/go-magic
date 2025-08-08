@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/athoune/go-magic/ast"
+	"github.com/athoune/go-magic/parse"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		tests, _, err := ast.Parse(f)
+		tests, _, err := parse.Parse(f)
 		if err != nil {
 			panic(err)
 		}
