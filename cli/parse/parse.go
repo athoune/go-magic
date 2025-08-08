@@ -21,9 +21,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		tests, line, err := ast.Parse(f)
+		tests, _, err := ast.Parse(f)
 		if err != nil {
-			fmt.Println("line:", line)
 			panic(err)
 		}
 		for _, test := range tests {

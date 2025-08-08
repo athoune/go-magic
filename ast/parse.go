@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
@@ -16,6 +17,8 @@ const (
 	COMPARE_NEGATED = uint8(126) // ~
 	COMPARE_NOT     = uint8(33)  // !
 )
+
+var OPERATIONS = []byte("=><&^~")
 
 type Offset struct {
 	Level       int
@@ -60,7 +63,7 @@ func ParseOffset(offset *Offset, line string) error {
 	}
 	switch {
 	case line[poz] == '(':
-		i := strings.IndexByte(line[poz+1:], ')')
+		i := strings.LastIndexByte(line[poz+1:], ')')
 		if i == -1 {
 			return fmt.Errorf("can't find ')' in %s", line)
 		}
@@ -98,6 +101,16 @@ func ParseDynamicOffset(offset *Offset, line string) error {
 	}
 	arg := dyn[arg_dynamic_idx]
 	if arg != "" {
+		start := strings.IndexByte(arg, '(')
+		if start != -1 {
+			// In msdos#175
+			// >>>>>>(&4.l+(-4))	string		ITOLITLS	\b, Microsoft compiled help format 2.0
+			end := strings.LastIndexByte(arg[1:], ')')
+			if end == -1 {
+				return fmt.Errorf("parenthesis mismatch: [%v]", arg)
+			}
+			arg = arg[1 : len(arg)-1]
+		}
 		offset.DynArg, err = strconv.ParseInt(arg, 0, 32)
 		if err != nil {
 			return fmt.Errorf("can't parse int in %v", arg)
@@ -106,12 +119,19 @@ func ParseDynamicOffset(offset *Offset, line string) error {
 	return nil
 }
 
-func ParseCompare(line string, clue Clue) (*Compare, error) {
-	if len(line) == 0 {
-		return nil, errors.New("empty compare value")
+func IsOperation(op byte) bool {
+	for _, a := range OPERATIONS {
+		if op == a {
+			return true
+		}
 	}
+	return false
+}
+
+// ParseCompare extract the operation, the value (typed) and the new position
+func ParseCompare(line string, clue Clue) (*Compare, int, error) {
 	if line[0] == 'x' {
-		return nil, nil
+		return nil, 1, nil
 	}
 	compare := &Compare{
 		Type: clue,
@@ -123,56 +143,79 @@ func ParseCompare(line string, clue Clue) (*Compare, error) {
 		poz++
 	}
 	compare.Operation = line[poz]
-	not_implicit_equality := false
-	for _, a := range []byte("=><&^~") {
-		if compare.Operation == a {
-			not_implicit_equality = true
-			break
-		}
-	}
-	if !not_implicit_equality {
+	if !IsOperation(compare.Operation) {
 		compare.Operation = '='
 	} else {
 		poz++
 	}
-	value := strings.TrimLeft(line[poz:], " ")
+	if line[poz] == ' ' {
+		poz++
+	}
+	end := HandleSpaceEscape(line[poz:])
+	value := line[poz : poz+end]
+	if clue == TYPE_CLUE_STRING {
+		value, _ = HandleStringEscape(value)
+	}
 	switch {
 	case clue == TYPE_CLUE_STRING:
-		compare.StringValue = value
+		compare.StringValue, err = HandleStringEscape(value)
+		if err != nil {
+			return nil, poz + end, err
+		}
 	case clue == TYPE_CLUE_FLOAT:
 		compare.FloatValue, err = strconv.ParseFloat(value, 64)
 		if err != nil {
-			return nil, fmt.Errorf("can't parse float: %v in [%v]", value, line)
+			return nil, poz + end, fmt.Errorf("can't parse float: %v in [%v]", value, line)
 		}
 	case clue == TYPE_CLUE_INT:
+		// In filesystems#1160 there is :
+		// 0	lelong		0x1b031336L	Netboot image,
+		// In mail.news#91
+		// >>15	ulelong		!0x00010000h	\b, version %#8.8
+		if len(value) > 1 {
+			for _, s := range []byte("hL") {
+				if value[len(value)-1] == byte(s) {
+					value = value[:len(value)-1]
+					break
+				}
+			}
+		}
 		compare.IntValue, err = strconv.ParseInt(value, 0, 64)
 		if err != nil {
-			return nil, fmt.Errorf("can't parse int: %v in [%v]", value, line)
+			return nil, poz + end, fmt.Errorf("can't parse int: %v in [%v]", value, line)
 		}
 	case clue == TYPE_CLUE_QUAD:
 		if value == "0" {
 			compare.QuadValue = []int64{0}
-			return compare, nil
+			return compare, poz + end, nil
 		}
-		if !strings.HasPrefix(value, "0x") {
-			return nil, fmt.Errorf("0 or hex format is mandatory for quad:  %s", value)
-		}
-		l := (len(value) - 2) / 16
-		v := make([]int64, l)
-		for i := range l {
-			v[i], err = strconv.ParseInt(value[i*16:(i+1)*16], 0, 64)
-			if err != nil {
-				return nil, err
+		if strings.HasPrefix(value, "0x") {
+			l := (len(value) - 2) / 8
+			v := make([]int64, l)
+			vv := value[2:]
+			for i := 0; i < l; i++ {
+				v[i], err = strconv.ParseInt(vv[i*8:(i+1)*8], 16, 64)
+				if err != nil {
+					return nil, 0, err
+				}
 			}
+			compare.QuadValue = v
+		} else {
+			v, err := strconv.ParseInt(value, 10, 64)
+			if err != nil {
+				return nil, poz + end, fmt.Errorf("can't parse int: %v in [%v]", value, line)
+			}
+			compare.QuadValue = []int64{v, 0}
 		}
-		compare.QuadValue = v
+	default:
+		return nil, 0, fmt.Errorf("unknown clue: %v", clue)
 	}
-	return compare, nil
+	return compare, poz + end, nil
 }
 
 func ParseType(line string) (*Type, error) {
 	t := &Type{}
-	for _, o := range []byte("/%&") {
+	for _, o := range []byte("/%&+-^*|") {
 		i := strings.IndexByte(line, o)
 		if i != -1 {
 			t.Name = line[:i]
@@ -184,7 +227,56 @@ func ParseType(line string) (*Type, error) {
 	if t.Name == "" {
 		t.Name = line
 	}
-	t.Clue_ = Types[t.Name].Clue_ // FIXME
+	tt, ok := Types[t.Name]
+	if !ok {
+		return nil, fmt.Errorf("unknown type [%v]", t.Name)
+	}
+	t.Clue_ = tt.Clue_ // FIXME
 
 	return t, nil
+}
+
+func HandleStringEscape(value string) (string, error) {
+	poz := 0
+	out := &bytes.Buffer{}
+	for {
+		if poz == len(value) {
+			break
+		}
+		switch {
+		case poz+4 <= len(value) && value[poz:poz+2] == `\x`:
+			v, err := strconv.ParseInt(value[poz+2:poz+4], 16, 64)
+			if err != nil {
+				return value, nil // YOLO, file use \x2\x4 in archive#1362
+			}
+			out.WriteByte(byte(v))
+			poz += 4
+		case poz+2 <= len(value) && value[poz:poz+2] == `\ `:
+			out.WriteByte(' ')
+			poz += 2
+		default:
+			out.WriteByte(value[poz])
+			poz++
+		}
+	}
+	return out.String(), nil
+
+}
+
+// HandleSpaceEscape line is closed by some spaces, but it handles escape : "\ "
+func HandleSpaceEscape(line string) int {
+	end := 0
+	for {
+		ns := notSpace(line[end:])
+		if ns == 0 {
+			break
+		}
+		end += ns
+		if end+1 < len(line) && line[end-1:end+1] == `\ ` {
+			end++
+		} else {
+			break
+		}
+	}
+	return end
 }

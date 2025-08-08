@@ -2,7 +2,6 @@ package ast
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -12,25 +11,41 @@ var offset_re *regexp.Regexp
 var spaces_re *regexp.Regexp
 var dynamic_value_re *regexp.Regexp
 var test_re *regexp.Regexp
+var dynamic_type_re *regexp.Regexp
 
-var level_idx int
-var offset_idx int
-var type_idx int
-var compare_idx int
-var data_idx int
+var level_test_idx int
+var offset_test_idx int
+var type_test_idx int
+var compare_test_idx int
+var data_test_idx int
+var modifier_test_idx int
+
+var value_dynamic_idx int
+var separator_dynamic_idx int
+var type_dynamic_idx int
+var operator_dynamic_idx int
+var arg_dynamic_idx int
 
 func init() {
 	offset_re = regexp.MustCompile(`(>*)(.+)`)
-	dynamic_value_re = regexp.MustCompile(`(\d+).(\w)([\+\-*/%&|^])(.*)`)
+	dynamic_value_re = regexp.MustCompile(`(?<value>(0x)?[0-9a-f]+)((?<separator>[.,])(?<type>[bBcCeEfFgGhHiIlLmsSqQ]))?((?<operator>[+\-*])(?<arg>.*))?`)
 	spaces_re = regexp.MustCompile(`\s+`)
 	// Use https://regex101.com/ for debugging
-	test_re = regexp.MustCompile(`^(?<level>>*)(?<offset>.+?)\s+(?<type>\w+)\s*(?<compare>[!=><&\^~]*[^\t]+)\t*(?<data>.*)`)
+	test_re = regexp.MustCompile(`^(?<level>>*)(?<offset>.+?)\s+(?<type>\w+)(?<modifier>[%/]\w+)?[\t ]+(?<compare>[!=><&\^~/%]* ?(\\ |\w)+)([\t ]+(?<data>.+))?$`)
 
-	level_idx = test_re.SubexpIndex("level")
-	offset_idx = test_re.SubexpIndex("offset")
-	type_idx = test_re.SubexpIndex("type")
-	compare_idx = test_re.SubexpIndex("compare")
-	data_idx = test_re.SubexpIndex("data")
+	level_test_idx = test_re.SubexpIndex("level")
+	offset_test_idx = test_re.SubexpIndex("offset")
+	type_test_idx = test_re.SubexpIndex("type")
+	compare_test_idx = test_re.SubexpIndex("compare")
+	data_test_idx = test_re.SubexpIndex("data")
+	modifier_test_idx = test_re.SubexpIndex("modifier")
+
+	value_dynamic_idx = dynamic_value_re.SubexpIndex("value")
+	separator_dynamic_idx = dynamic_value_re.SubexpIndex("separator")
+	type_dynamic_idx = dynamic_value_re.SubexpIndex("type")
+	operator_dynamic_idx = dynamic_value_re.SubexpIndex("operator")
+	arg_dynamic_idx = dynamic_value_re.SubexpIndex("arg")
+
 }
 
 func Parse(r io.Reader) ([]*Test, int, error) {
@@ -52,11 +67,7 @@ func Parse(r io.Reader) ([]*Test, int, error) {
 		if line[0] == '#' { // comment
 			continue
 		}
-		test := &Test{
-			SubTests: make([]*Test, 0),
-			Actions:  make([]*Action, 0),
-			Offset:   &Offset{},
-		}
+		test := NewTest()
 		if previous != nil && strings.HasPrefix(line, "!:") {
 			slugs = spaces_re.Split(line[2:], -1)
 			previous.Actions = append(previous.Actions, &Action{
@@ -65,23 +76,7 @@ func Parse(r io.Reader) ([]*Test, int, error) {
 			})
 			continue
 		}
-		slugs = test_re.FindStringSubmatch(line)
-		if len(slugs) == 0 {
-			return nil, n_line, fmt.Errorf("can't parse this line : %s", line)
-		}
-		fmt.Println("line:", line, "level:", slugs[level_idx], "offset:",
-			slugs[offset_idx], "type:", slugs[type_idx], "compare:", slugs[compare_idx],
-			"data:", slugs[data_idx])
-		t, ok := Types[slugs[type_idx]]
-		if !ok {
-			return nil, n_line, fmt.Errorf("unknown type : %s", slugs[type_idx])
-		}
-		test.Type = t
-		test.Offset, err = ParseOffset(slugs[level_idx], slugs[offset_idx])
-		if err != nil {
-			return nil, n_line, err
-		}
-		test.Compare, err = ParseCompare(slugs[compare_idx], t.Clue_)
+		err = ParseLine(test, line)
 		if err != nil {
 			return nil, n_line, err
 		}

@@ -2,19 +2,23 @@ package ast
 
 const (
 	TYPE_CLUE_INT = Clue(iota)
+	TYPE_CLUE_QUAD
 	TYPE_CLUE_FLOAT
 	TYPE_CLUE_STRING
 )
 
 type Clue int
 type Type struct {
-	Name  string
-	Clue_ Clue
+	Name     string
+	Clue_    Clue
+	Operator byte
+	Arg      string
 }
 
 var Types map[string]*Type
 
 func init() {
+	// FIXME Types should be map[string]Clue
 	Types = map[string]*Type{
 		"byte": {
 			Clue_: TYPE_CLUE_INT,
@@ -25,14 +29,38 @@ func init() {
 		"short": {
 			Clue_: TYPE_CLUE_INT,
 		},
+		"ushort": {
+			Clue_: TYPE_CLUE_INT,
+		},
 		"ubeshort": {
+			Clue_: TYPE_CLUE_INT,
+		},
+		"uleshort": {
 			Clue_: TYPE_CLUE_INT,
 		},
 		"long": {
 			Clue_: TYPE_CLUE_INT,
 		},
-		"quad": {
+		"ulong": {
 			Clue_: TYPE_CLUE_INT,
+		},
+		"ubelong": {
+			Clue_: TYPE_CLUE_INT,
+		},
+		"ulelong": {
+			Clue_: TYPE_CLUE_INT,
+		},
+		"quad": {
+			Clue_: TYPE_CLUE_QUAD,
+		},
+		"ubequad": {
+			Clue_: TYPE_CLUE_QUAD,
+		},
+		"uquad": {
+			Clue_: TYPE_CLUE_QUAD,
+		},
+		"ulequad": {
+			Clue_: TYPE_CLUE_QUAD,
 		},
 		"float": {
 			Clue_: TYPE_CLUE_FLOAT,
@@ -46,7 +74,13 @@ func init() {
 		"pstring": {
 			Clue_: TYPE_CLUE_STRING,
 		},
+		"ustring": {
+			Clue_: TYPE_CLUE_STRING,
+		},
 		"date": {
+			Clue_: TYPE_CLUE_STRING,
+		},
+		"lemsdosdate": {
 			Clue_: TYPE_CLUE_STRING,
 		},
 		"qdate": {
@@ -61,6 +95,15 @@ func init() {
 		"qwdate": {
 			Clue_: TYPE_CLUE_STRING,
 		},
+		"uledate": {
+			Clue_: TYPE_CLUE_STRING,
+		},
+		"ubeqdate": {
+			Clue_: TYPE_CLUE_STRING,
+		},
+		"lemsdostime": {
+			Clue_: TYPE_CLUE_STRING,
+		},
 		"beid3": {
 			Clue_: TYPE_CLUE_STRING,
 		},
@@ -71,7 +114,7 @@ func init() {
 			Clue_: TYPE_CLUE_INT,
 		},
 		"bequad": {
-			Clue_: TYPE_CLUE_INT,
+			Clue_: TYPE_CLUE_QUAD,
 		},
 		"befloat": {
 			Clue_: TYPE_CLUE_FLOAT,
@@ -107,7 +150,7 @@ func init() {
 			Clue_: TYPE_CLUE_INT,
 		},
 		"lequad": {
-			Clue_: TYPE_CLUE_INT,
+			Clue_: TYPE_CLUE_QUAD,
 		},
 		"lefloat": {
 			Clue_: TYPE_CLUE_FLOAT,
@@ -141,6 +184,12 @@ func init() {
 		},
 		"meldate": {
 			Clue_: TYPE_CLUE_STRING,
+		},
+		"u4": {
+			Clue_: TYPE_CLUE_INT,
+		},
+		"u8": {
+			Clue_: TYPE_CLUE_INT,
 		},
 		"indirect": {
 			Clue_: TYPE_CLUE_STRING,

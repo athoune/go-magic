@@ -63,14 +63,15 @@ func ParseLine(test *Test, line string) error {
 	poz += end
 	poz += spaces(line[poz:])
 	end = notSpace(line[poz:])
-	if len(line) > poz+end && line[poz+end] == ' ' { // it's the infamous "< 10", implicitly "<10"
-		end += notSpace(line[poz+end+1:])
-	}
 
-	test.Compare, err = ParseCompare(line[poz:poz+end], test.Type.Clue_)
+	var size int
+	test.Compare, size, err = ParseCompare(line[poz:], test.Type.Clue_)
 	if err != nil {
 		return fmt.Errorf("error in line [%v]: %v", line, err)
 	}
+	poz += size
+	poz += spaces(line[poz:])
+	test.Message = line[poz:]
 	return nil
 }
 
