@@ -2,6 +2,7 @@ package ast
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -17,13 +18,14 @@ const (
 )
 
 type Offset struct {
-	Level     int
-	Value     int64
-	Dynamic   bool
-	DynOffset int64
-	DynType   byte
-	DynAction byte
-	DynArg    int64
+	Level       int
+	Relative    bool
+	Value       int64
+	Dynamic     bool
+	DynOffset   int64
+	DynType     byte
+	DynOperator byte
+	DynArg      int64
 }
 
 type Compare struct {
@@ -32,55 +34,95 @@ type Compare struct {
 	StringValue string
 	FloatValue  float64
 	IntValue    int64
+	QuadValue   []int64
 	Type        Clue
 }
 
-func ParseOffset(level, value string) (*Offset, error) {
-	offset := &Offset{}
+func ParseOffset(offset *Offset, line string) error {
+	if line == "" {
+		return errors.New("empty value")
+	}
 	var err error
-	offset.Level = len(level)
 
-	if strings.HasPrefix(value, "(") {
-		offset.Dynamic = true
-		dyn := dynamic_value_re.FindStringSubmatch(value[1 : len(value)-1])
-		if len(dyn) != 5 {
-			return nil, errors.New("Bad dynamic offset value : " + value)
+	offset.Level = 0
+	//var err error
+	for i := 0; i < len(line); i++ {
+		if line[i] != '>' {
+			break
 		}
-		offset.DynOffset, err = strconv.ParseInt(dyn[1], 0, 32)
-		if err != nil {
-			return nil, err
+		offset.Level++
+	}
+
+	poz := offset.Level
+	if line[poz] == '&' {
+		offset.Relative = true
+		poz++
+	}
+	switch {
+	case line[poz] == '(':
+		i := strings.IndexByte(line[poz+1:], ')')
+		if i == -1 {
+			return fmt.Errorf("can't find ')' in %s", line)
 		}
-		offset.DynType = dyn[2][0]
-		offset.DynAction = dyn[3][0]
-		offset.DynArg, err = strconv.ParseInt(dyn[4], 0, 32)
+		err = ParseDynamicOffset(offset, line[poz+1:poz+i+1])
 		if err != nil {
-			return nil, err
+			return err
 		}
-	} else {
-		offset.Value, err = strconv.ParseInt(value, 0, 32)
+		poz += i
+	default:
+		offset.Value, err = strconv.ParseInt(line[poz:], 0, 32)
 		if err != nil {
-			return nil, err
+			return fmt.Errorf("can't parse int in [%s] at %v", line, poz)
 		}
 	}
-	return offset, nil
+	return nil
 }
 
-func ParseCompare(txt string, clue Clue) (*Compare, error) {
-	txt = strings.Trim(txt, "\t ")
-	if len(txt) == 0 {
+func ParseDynamicOffset(offset *Offset, line string) error {
+	offset.Dynamic = true
+	var err error
+	dyn := dynamic_value_re.FindStringSubmatch(line)
+	if len(dyn) == 0 {
+		return errors.New("Bad dynamic offset value : " + line)
+	}
+	offset.DynOffset, err = strconv.ParseInt(dyn[value_dynamic_idx], 0, 32)
+	if err != nil {
+		return fmt.Errorf("%s <= %v", line, err)
+	}
+	if dyn[type_dynamic_idx] != "" {
+		offset.DynType = dyn[type_dynamic_idx][0]
+	}
+	operator := dyn[operator_dynamic_idx]
+	if operator != "" {
+		offset.DynOperator = operator[0]
+	}
+	arg := dyn[arg_dynamic_idx]
+	if arg != "" {
+		offset.DynArg, err = strconv.ParseInt(arg, 0, 32)
+		if err != nil {
+			return fmt.Errorf("can't parse int in %v", arg)
+		}
+	}
+	return nil
+}
+
+func ParseCompare(line string, clue Clue) (*Compare, error) {
+	if len(line) == 0 {
 		return nil, errors.New("empty compare value")
 	}
-	if txt[0] == 'x' {
+	if line[0] == 'x' {
 		return nil, nil
 	}
-	compare := &Compare{}
-	var err error
-	i := 0
-	if txt[i] == '!' {
-		compare.Not = true
-		i++
+	compare := &Compare{
+		Type: clue,
 	}
-	compare.Operation = txt[i]
+	var err error
+	poz := 0
+	if line[poz] == '!' {
+		compare.Not = true
+		poz++
+	}
+	compare.Operation = line[poz]
 	not_implicit_equality := false
 	for _, a := range []byte("=><&^~") {
 		if compare.Operation == a {
@@ -91,23 +133,58 @@ func ParseCompare(txt string, clue Clue) (*Compare, error) {
 	if !not_implicit_equality {
 		compare.Operation = '='
 	} else {
-		i++
+		poz++
 	}
-	compare.Type = clue
-	value := strings.Trim(txt[i:], " ")
+	value := strings.TrimLeft(line[poz:], " ")
 	switch {
 	case clue == TYPE_CLUE_STRING:
 		compare.StringValue = value
 	case clue == TYPE_CLUE_FLOAT:
 		compare.FloatValue, err = strconv.ParseFloat(value, 64)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't parse float: %v in [%v]", value, line)
 		}
 	case clue == TYPE_CLUE_INT:
 		compare.IntValue, err = strconv.ParseInt(value, 0, 64)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't parse int: %v in [%v]", value, line)
 		}
+	case clue == TYPE_CLUE_QUAD:
+		if value == "0" {
+			compare.QuadValue = []int64{0}
+			return compare, nil
+		}
+		if !strings.HasPrefix(value, "0x") {
+			return nil, fmt.Errorf("0 or hex format is mandatory for quad:  %s", value)
+		}
+		l := (len(value) - 2) / 16
+		v := make([]int64, l)
+		for i := range l {
+			v[i], err = strconv.ParseInt(value[i*16:(i+1)*16], 0, 64)
+			if err != nil {
+				return nil, err
+			}
+		}
+		compare.QuadValue = v
 	}
 	return compare, nil
+}
+
+func ParseType(line string) (*Type, error) {
+	t := &Type{}
+	for _, o := range []byte("/%&") {
+		i := strings.IndexByte(line, o)
+		if i != -1 {
+			t.Name = line[:i]
+			t.Operator = o
+			t.Arg = line[i:]
+			break
+		}
+	}
+	if t.Name == "" {
+		t.Name = line
+	}
+	t.Clue_ = Types[t.Name].Clue_ // FIXME
+
+	return t, nil
 }
