@@ -5,6 +5,8 @@ import (
 	"io"
 	"regexp"
 	"strings"
+
+	"github.com/athoune/go-magic/model"
 )
 
 var offset_re *regexp.Regexp
@@ -48,12 +50,12 @@ func init() {
 
 }
 
-func Parse(r io.Reader) ([]*Test, int, error) {
+func Parse(r io.Reader) ([]*model.Test, int, error) {
 	scanner := bufio.NewScanner(r)
 	var slugs []string
 	var err error
-	var previous *Test
-	tests := make([]*Test, 0)
+	var previous *model.Test
+	tests := make([]*model.Test, 0)
 	n_line := 0
 	for scanner.Scan() {
 		n_line += 1
@@ -67,10 +69,10 @@ func Parse(r io.Reader) ([]*Test, int, error) {
 		if line[0] == '#' { // comment
 			continue
 		}
-		test := NewTest()
+		test := model.NewTest()
 		if previous != nil && strings.HasPrefix(line, "!:") {
 			slugs = spaces_re.Split(line[2:], -1)
-			previous.Actions = append(previous.Actions, &Action{
+			previous.Actions = append(previous.Actions, &model.Action{
 				Name: slugs[0],
 				Arg:  slugs[1],
 			})

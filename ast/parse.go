@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/athoune/go-magic/model"
 )
 
 const (
@@ -20,28 +22,7 @@ const (
 
 var OPERATIONS = []byte("=><&^~")
 
-type Offset struct {
-	Level       int
-	Relative    bool
-	Value       int64
-	Dynamic     bool
-	DynOffset   int64
-	DynType     byte
-	DynOperator byte
-	DynArg      int64
-}
-
-type Compare struct {
-	Operation   byte // = > < & ^ ~
-	Not         bool // !
-	StringValue string
-	FloatValue  float64
-	IntValue    int64
-	QuadValue   []int64
-	Type        Clue
-}
-
-func ParseOffset(offset *Offset, line string) error {
+func ParseOffset(offset *model.Offset, line string) error {
 	if line == "" {
 		return errors.New("empty value")
 	}
@@ -81,7 +62,7 @@ func ParseOffset(offset *Offset, line string) error {
 	return nil
 }
 
-func ParseDynamicOffset(offset *Offset, line string) error {
+func ParseDynamicOffset(offset *model.Offset, line string) error {
 	offset.Dynamic = true
 	var err error
 	dyn := dynamic_value_re.FindStringSubmatch(line)
@@ -129,11 +110,11 @@ func IsOperation(op byte) bool {
 }
 
 // ParseCompare extract the operation, the value (typed) and the new position
-func ParseCompare(line string, clue Clue) (*Compare, int, error) {
+func ParseCompare(line string, clue model.Clue) (*model.Compare, int, error) {
 	if line[0] == 'x' {
 		return nil, 1, nil
 	}
-	compare := &Compare{
+	compare := &model.Compare{
 		Type: clue,
 	}
 	var err error
@@ -153,21 +134,21 @@ func ParseCompare(line string, clue Clue) (*Compare, int, error) {
 	}
 	end := HandleSpaceEscape(line[poz:])
 	value := line[poz : poz+end]
-	if clue == TYPE_CLUE_STRING {
+	if clue == model.TYPE_CLUE_STRING {
 		value, _ = HandleStringEscape(value)
 	}
 	switch {
-	case clue == TYPE_CLUE_STRING:
+	case clue == model.TYPE_CLUE_STRING:
 		compare.StringValue, err = HandleStringEscape(value)
 		if err != nil {
 			return nil, poz + end, err
 		}
-	case clue == TYPE_CLUE_FLOAT:
+	case clue == model.TYPE_CLUE_FLOAT:
 		compare.FloatValue, err = strconv.ParseFloat(value, 64)
 		if err != nil {
 			return nil, poz + end, fmt.Errorf("can't parse float: %v in [%v]", value, line)
 		}
-	case clue == TYPE_CLUE_INT:
+	case clue == model.TYPE_CLUE_INT:
 		// In filesystems#1160 there is :
 		// 0	lelong		0x1b031336L	Netboot image,
 		// In mail.news#91
@@ -184,7 +165,7 @@ func ParseCompare(line string, clue Clue) (*Compare, int, error) {
 		if err != nil {
 			return nil, poz + end, fmt.Errorf("can't parse int: %v in [%v]", value, line)
 		}
-	case clue == TYPE_CLUE_QUAD:
+	case clue == model.TYPE_CLUE_QUAD:
 		if value == "0" {
 			compare.QuadValue = []int64{0}
 			return compare, poz + end, nil
@@ -213,8 +194,8 @@ func ParseCompare(line string, clue Clue) (*Compare, int, error) {
 	return compare, poz + end, nil
 }
 
-func ParseType(line string) (*Type, error) {
-	t := &Type{}
+func ParseType(line string) (*model.Type, error) {
+	t := &model.Type{}
 	for _, o := range []byte("/%&+-^*|") {
 		i := strings.IndexByte(line, o)
 		if i != -1 {
@@ -227,7 +208,7 @@ func ParseType(line string) (*Type, error) {
 	if t.Name == "" {
 		t.Name = line
 	}
-	tt, ok := Types[t.Name]
+	tt, ok := model.Types[t.Name]
 	if !ok {
 		return nil, fmt.Errorf("unknown type [%v]", t.Name)
 	}

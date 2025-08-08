@@ -3,6 +3,8 @@ package ast
 import (
 	"fmt"
 	"unicode"
+
+	"github.com/athoune/go-magic/model"
 )
 
 type step_test int
@@ -15,7 +17,7 @@ const (
 )
 
 type TestLineParser struct {
-	test *Test
+	test *model.Test
 	step step_test
 	poz  int
 }
@@ -44,7 +46,7 @@ func notSpace(line string) int {
 }
 
 // ParseLine parse the complete line
-func ParseLine(test *Test, line string) error {
+func ParseLine(test *model.Test, line string) error {
 	poz := 0
 	end := notSpace(line)
 	err := ParseOffset(test.Offset, line[:end])

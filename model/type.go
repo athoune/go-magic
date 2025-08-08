@@ -1,4 +1,4 @@
-package ast
+package model
 
 const (
 	TYPE_CLUE_INT = Clue(iota)

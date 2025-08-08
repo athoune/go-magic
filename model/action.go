@@ -1,4 +1,4 @@
-package ast
+package model
 
 type Action struct {
 	Name string
