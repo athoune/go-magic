@@ -60,12 +60,15 @@ func Parse(r io.Reader) ([]*model.Test, int, error) {
 		if err != nil {
 			return nil, n_line, err
 		}
+		if test.Offset.Level == 0 {
+			previous = test
+		}
 		if previous != nil && test.Offset.Level >= previous.Offset.Level {
-
+			previous.SubTests = append(previous.SubTests, test)
 		} else {
+			previous = test
 			tests = append(tests, test)
 		}
-		previous = test // FIXME
 	}
 	return tests, n_line, nil
 }

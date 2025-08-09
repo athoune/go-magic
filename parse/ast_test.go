@@ -6,24 +6,28 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/athoune/go-magic/model"
 )
 
 func TestParse(t *testing.T) {
+	fixture := `# Standard PNG image.
+0	string		\x89PNG\x0d\x0a\x1a\x0a\x00\x00\x00\x0DIHDR	PNG image data
+!:mime	image/png
+!:ext   png
+!:strength +10
+>16	use		png-ihdr
+>33	string		\x00\x00\x00\x08acTL	\b, animated
+>>41	ubelong		1			(%d frame
+>>41	ubelong		>1			(%d frames
+>>45	ubelong		0			\b, infinite repetitions)
+>>45	ubelong		1			\b, %d repetition)
+>>45	ubelong		>1			\b, %d repetitions)`
 
-	tests, line, err := Parse(strings.NewReader(`>>16	belong&0xfe00f0f0	0x3030`))
-	assert.Nil(t, err)
-	assert.Equal(t, 1, line)
-	assert.NotNil(t, tests)
+	tests, _, err := Parse(strings.NewReader(fixture))
+	assert.NoError(t, err)
 	assert.Len(t, tests, 1)
 	test := tests[0]
-	assert.Equal(t, 2, test.Offset.Level)
-	assert.Equal(t, int64(16), test.Offset.Value)
-	assert.Equal(t, model.TYPE_CLUE_INT, test.Type.Clue_)
-	assert.Equal(t, "belong", test.Type.Name)
-	assert.Equal(t, COMPARE_EQUAL, test.Compare.Operation)
-	assert.False(t, test.Compare.Not)
+	assert.Len(t, test.Actions, 3)
+	assert.Len(t, test.SubTests, 2)
 
 }
 func TestRead(t *testing.T) {
