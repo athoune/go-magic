@@ -18,3 +18,5 @@ func NewTest() *Test {
 		Actions:  make([]*Action, 0),
 	}
 }
+
+type Tests []*Test

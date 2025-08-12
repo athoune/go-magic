@@ -33,22 +33,20 @@ var operator_dynamic_idx int
 var arg_dynamic_idx int
 
 func init() {
-	dynamic_value_re = regexp.MustCompile(`(?<value>(0x)?[0-9a-f]+)((?<separator>[.,])(?<type>[bBcCeEfFgGhHiIlLmsSqQ]))?((?<operator>[+\-*])(?<arg>.*))?`)
 	spaces_re = regexp.MustCompile(`\s+`)
 
+	dynamic_value_re = regexp.MustCompile(`(?<value>(0x)?[0-9a-f]+)((?<separator>[.,])(?<type>[bBcCeEfFgGhHiIlLmsSqQ]))?((?<operator>[+\-*])(?<arg>.*))?`)
 	value_dynamic_idx = dynamic_value_re.SubexpIndex("value")
 	type_dynamic_idx = dynamic_value_re.SubexpIndex("type")
 	operator_dynamic_idx = dynamic_value_re.SubexpIndex("operator")
 	arg_dynamic_idx = dynamic_value_re.SubexpIndex("arg")
-
 }
 
-func Parse(r io.Reader) ([]*model.Test, int, error) {
+func Parse(r io.Reader) (model.Tests, int, error) {
 	scanner := bufio.NewScanner(r)
 	var slugs []string
 	var err error
-	var previous *model.Test
-	tests := make([]*model.Test, 0)
+	tests := NewTests()
 	n_line := 0
 	for scanner.Scan() {
 		n_line += 1
@@ -62,30 +60,22 @@ func Parse(r io.Reader) ([]*model.Test, int, error) {
 		if line[0] == '#' { // comment
 			continue
 		}
-		test := model.NewTest()
-		if previous != nil && strings.HasPrefix(line, "!:") {
+		if strings.HasPrefix(line, "!:") {
 			slugs = spaces_re.Split(line[2:], -1)
-			previous.Actions = append(previous.Actions, &model.Action{
+			tests.AppendAction(&model.Action{
 				Name: slugs[0],
 				Arg:  slugs[1],
 			})
 			continue
 		}
+		test := model.NewTest()
 		err = ParseLine(test, line)
 		if err != nil {
 			return nil, n_line, err
 		}
-		if test.Offset.Level == 0 {
-			previous = test
-		}
-		if previous != nil && test.Offset.Level >= previous.Offset.Level {
-			previous.SubTests = append(previous.SubTests, test)
-		} else {
-			previous = test
-			tests = append(tests, test)
-		}
+		tests.AppendTest(test)
 	}
-	return tests, n_line, nil
+	return tests.Tests, n_line, nil
 }
 func ParseOffset(offset *model.Offset, line string) error {
 	if line == "" {
