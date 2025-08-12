@@ -1,9 +1,11 @@
 package parse
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	"fmt"
+	"io"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -22,6 +24,69 @@ const (
 
 var OPERATIONS = []byte("=><&^~")
 
+var spaces_re *regexp.Regexp
+var dynamic_value_re *regexp.Regexp
+
+var value_dynamic_idx int
+var type_dynamic_idx int
+var operator_dynamic_idx int
+var arg_dynamic_idx int
+
+func init() {
+	dynamic_value_re = regexp.MustCompile(`(?<value>(0x)?[0-9a-f]+)((?<separator>[.,])(?<type>[bBcCeEfFgGhHiIlLmsSqQ]))?((?<operator>[+\-*])(?<arg>.*))?`)
+	spaces_re = regexp.MustCompile(`\s+`)
+
+	value_dynamic_idx = dynamic_value_re.SubexpIndex("value")
+	type_dynamic_idx = dynamic_value_re.SubexpIndex("type")
+	operator_dynamic_idx = dynamic_value_re.SubexpIndex("operator")
+	arg_dynamic_idx = dynamic_value_re.SubexpIndex("arg")
+
+}
+
+func Parse(r io.Reader) ([]*model.Test, int, error) {
+	scanner := bufio.NewScanner(r)
+	var slugs []string
+	var err error
+	var previous *model.Test
+	tests := make([]*model.Test, 0)
+	n_line := 0
+	for scanner.Scan() {
+		n_line += 1
+		line := scanner.Text()
+		if err = scanner.Err(); err != nil {
+			return nil, n_line, err
+		}
+		if len(line) == 0 { // empty
+			continue
+		}
+		if line[0] == '#' { // comment
+			continue
+		}
+		test := model.NewTest()
+		if previous != nil && strings.HasPrefix(line, "!:") {
+			slugs = spaces_re.Split(line[2:], -1)
+			previous.Actions = append(previous.Actions, &model.Action{
+				Name: slugs[0],
+				Arg:  slugs[1],
+			})
+			continue
+		}
+		err = ParseLine(test, line)
+		if err != nil {
+			return nil, n_line, err
+		}
+		if test.Offset.Level == 0 {
+			previous = test
+		}
+		if previous != nil && test.Offset.Level >= previous.Offset.Level {
+			previous.SubTests = append(previous.SubTests, test)
+		} else {
+			previous = test
+			tests = append(tests, test)
+		}
+	}
+	return tests, n_line, nil
+}
 func ParseOffset(offset *model.Offset, line string) error {
 	if line == "" {
 		return errors.New("empty value")
@@ -98,15 +163,6 @@ func ParseDynamicOffset(offset *model.Offset, line string) error {
 		}
 	}
 	return nil
-}
-
-func IsOperation(op byte) bool {
-	for _, a := range OPERATIONS {
-		if op == a {
-			return true
-		}
-	}
-	return false
 }
 
 // ParseCompare extract the operation, the value (typed) and the new position
@@ -215,49 +271,4 @@ func ParseType(line string) (*model.Type, error) {
 	t.Clue_ = tt.Clue_ // FIXME
 
 	return t, nil
-}
-
-func HandleStringEscape(value string) (string, error) {
-	poz := 0
-	out := &bytes.Buffer{}
-	for {
-		if poz == len(value) {
-			break
-		}
-		switch {
-		case poz+4 <= len(value) && value[poz:poz+2] == `\x`:
-			v, err := strconv.ParseInt(value[poz+2:poz+4], 16, 64)
-			if err != nil {
-				return value, nil // YOLO, file use \x2\x4 in archive#1362
-			}
-			out.WriteByte(byte(v))
-			poz += 4
-		case poz+2 <= len(value) && value[poz:poz+2] == `\ `:
-			out.WriteByte(' ')
-			poz += 2
-		default:
-			out.WriteByte(value[poz])
-			poz++
-		}
-	}
-	return out.String(), nil
-
-}
-
-// HandleSpaceEscape line is closed by some spaces, but it handles escape : "\ "
-func HandleSpaceEscape(line string) int {
-	end := 0
-	for {
-		ns := notSpace(line[end:])
-		if ns == 0 {
-			break
-		}
-		end += ns
-		if end+1 < len(line) && line[end-1:end+1] == `\ ` {
-			end++
-		} else {
-			break
-		}
-	}
-	return end
 }
