@@ -5,3 +5,4 @@ parse:
 
 test:
 	go test -v -cover ./parse
+	go test -v -cover ./ast
