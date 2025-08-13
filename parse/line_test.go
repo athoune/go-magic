@@ -26,135 +26,200 @@ func TestNotSpaces(t *testing.T) {
 func TestParseLine(t *testing.T) {
 	for _, fixture := range []struct {
 		line    string
-		type_   string
 		Compare *model.Compare
 	}{
-		{`>>16	belong&0xfe00f0f0	0x3030`, "belong", &model.Compare{
+		{`>>16	belong&0xfe00f0f0	0x3030`, &model.Compare{
 			Operation: '=',
 			IntValue:  0x3030,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Clue_:    model.TYPE_CLUE_INT,
+				Name:     "belong",
+				Operator: '&',
+				Arg:      "0xfe00f0f0",
+			},
 		}},
-		{`0	lelong		0xc3cbc6c5	RISC OS Chunk data`, "lelong", &model.Compare{
+		{`0	lelong		0xc3cbc6c5	RISC OS Chunk data`, &model.Compare{
 			Operation: '=',
 			IntValue:  0xc3cbc6c5,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "lelong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>>>>>>0	ubyte			< 10	Infocom (Z-machine %d`, "ubyte", &model.Compare{
+		{`>>>>>>0	ubyte			< 10	Infocom (Z-machine %d`, &model.Compare{
 			Operation: '<',
 			IntValue:  10,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{Name: "ubyte",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`0	string 		Draw		RISC OS Draw file data`, "string", &model.Compare{
+		{`0	string 		Draw		RISC OS Draw file data`, &model.Compare{
 			Operation:   '=',
 			StringValue: "Draw",
-			Type:        model.TYPE_CLUE_STRING,
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING},
 		}},
-		{`>12	leshort	!1	%d patterns`, "leshort", &model.Compare{
+		{`>12	leshort	!1	%d patterns`, &model.Compare{
 			Not:       true,
 			Operation: '=',
 			IntValue:  1,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "leshort",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`0	string	\x02\x01\x13\x13\x10\x14\x12\x0e`, "string", &model.Compare{
+		{`0	string	\x02\x01\x13\x13\x10\x14\x12\x0e`, &model.Compare{
 			Operation:   '=',
 			StringValue: "\x02\x01\x13\x13\x10\x14\x12\x0e",
-			Type:        model.TYPE_CLUE_STRING,
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING},
 		}},
-		{`>9	belong  !0x0A0D1A00	game data, CORRUPTED`, "belong", &model.Compare{
+		{`>9	belong  !0x0A0D1A00	game data, CORRUPTED`, &model.Compare{
 			Not:       true,
 			Operation: '=',
 			IntValue:  0x0A0D1A00,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "belong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>>>>&1	string		x		"%s"`, "string", nil},
-		{`0	search/8192	(input,`, "search", &model.Compare{
+		{`>>>>&1	string		x		"%s"`, nil},
+		{`0	search/8192	(input,`, &model.Compare{
 			Operation:   '=',
 			StringValue: "(input,",
-			Type:        model.TYPE_CLUE_STRING,
+			Type: &model.Type{
+				Name:     "search",
+				Clue_:    model.TYPE_CLUE_STRING,
+				Operator: '/',
+				Arg:      "8192",
+			},
 		}},
-		{`>>>>>>&8	ubelong%44100	0`, "ubelong", &model.Compare{
+		{`>>>>>>&8	ubelong%44100	0`, &model.Compare{
 			Operation: '=',
 			IntValue:  0,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:     "ubelong",
+				Clue_:    model.TYPE_CLUE_INT,
+				Operator: '%',
+				Arg:      "44100",
+			},
 		}},
-		{`>8		ubyte/4		=0		CHN: 4`, "ubyte", &model.Compare{
+		{`>8		ubyte/4		=0		CHN: 4`, &model.Compare{
 			Operation: '=',
 			IntValue:  0,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:     "ubyte",
+				Clue_:    model.TYPE_CLUE_INT,
+				Operator: '/',
+				Arg:      "4",
+			},
 		}},
-		{`>>&(0x04)	lelong	>0	\b, with %d reference sequences`, "lelong", &model.Compare{
+		{`>>&(0x04)	lelong	>0	\b, with %d reference sequences`, &model.Compare{
 			Operation: '>',
 			IntValue:  0,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "lelong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>>>>(0x3C.b+0x0FF)	string	Invalid\ partition\ table		english`, "string", &model.Compare{
+		{`>>>>(0x3C.b+0x0FF)	string	Invalid\ partition\ table		english`, &model.Compare{
 			Operation:   '=',
 			StringValue: "Invalid partition table",
-			Type:        model.TYPE_CLUE_STRING,
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING},
 		}},
-		{`0	string		AES`, "string", &model.Compare{
+		{`0	string		AES`, &model.Compare{
 			Operation:   '=',
 			StringValue: "AES",
-			Type:        model.TYPE_CLUE_STRING,
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING},
 		}},
-		{`>>88	belong	& 1			\b, valid`, "belong", &model.Compare{
+		{`>>88	belong	& 1			\b, valid`, &model.Compare{
 			Operation: '&',
 			IntValue:  1,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "belong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`0 belong 0x736C6821   Allegro datafile (packed)`, "belong", &model.Compare{
+		{`0 belong 0x736C6821   Allegro datafile (packed)`, &model.Compare{
 			Operation: '=',
 			IntValue:  0x736C6821,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "belong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>(4.L+28)	beshort+1	>0	\b, %u type`, "beshort", &model.Compare{
+		{`>(4.L+28)	beshort+1	>0	\b, %u type`, &model.Compare{
 			Operation: '>',
 			IntValue:  0,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:     "beshort",
+				Clue_:    model.TYPE_CLUE_INT,
+				Operator: '+',
+				Arg:      "1",
+			},
 		}},
-		{`0	belong&0xffffe000	0x76ff2000 CDC Codec archive data`, "belong", &model.Compare{
+		{`0	belong&0xffffe000	0x76ff2000 CDC Codec archive data`, &model.Compare{
 			Operation: '=',
 			IntValue:  0x76ff2000,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:     "belong",
+				Clue_:    model.TYPE_CLUE_INT,
+				Operator: '&',
+				Arg:      "0xffffe000",
+			},
 		}},
-		{`>2	string	\x2\x4	Xpack DiskImage archive data`, "string", &model.Compare{
+		{`>2	string	\x2\x4	Xpack DiskImage archive data`, &model.Compare{
 			Operation:   '=',
 			StringValue: `\x2\x4`,
-			Type:        model.TYPE_CLUE_STRING,
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING},
 		}},
-		{`>0x1D5		ubequad		0x2f30313233343536	configuration of Tasmota firmware (ESP8266)`, "ubequad", &model.Compare{
+		{`>0x1D5		ubequad		0x2f30313233343536	configuration of Tasmota firmware (ESP8266)`, &model.Compare{
 			Operation: '=',
 			QuadValue: []int64{0x2f303132, 0x33343536},
-			Type:      model.TYPE_CLUE_QUAD,
+			Type: &model.Type{
+				Name:  "ubequad",
+				Clue_: model.TYPE_CLUE_QUAD},
 		}},
-		{`>>11		ubyte^0x65	x			\b, version %u`, "ubyte", nil},
-		{`0	lelong		0x1b031336L	Netboot image,`, "lelong", &model.Compare{
+		{`>>11		ubyte^0x65	x			\b, version %u`, nil},
+		{`0	lelong		0x1b031336L	Netboot image,`, &model.Compare{
 			Operation: '=',
 			IntValue:  0x1b031336,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "lelong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>0x68	lequad		8	\b, UUID=`, "lequad", &model.Compare{
+		{`>0x68	lequad		8	\b, UUID=`, &model.Compare{
 			Operation: '=',
 			QuadValue: []int64{8, 0},
-			Type:      model.TYPE_CLUE_QUAD,
+			Type: &model.Type{
+				Name:  "lequad",
+				Clue_: model.TYPE_CLUE_QUAD},
 		}},
-		{`>>15	ulelong		!0x00010000h	\b, version %#8.8`, "ulelong", &model.Compare{
+		{`>>15	ulelong		!0x00010000h	\b, version %#8.8`, &model.Compare{
 			Operation: '=',
 			Not:       true,
 			IntValue:  0x00010000,
-			Type:      model.TYPE_CLUE_INT,
+			Type: &model.Type{
+				Name:  "ulelong",
+				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>>>>>>(&4.l+(-4))	string		ITOLITLS	\b, Microsoft compiled help format 2.0`, "string", &model.Compare{
+		{`>>>>>>(&4.l+(-4))	string		ITOLITLS	\b, Microsoft compiled help format 2.0`, &model.Compare{
 			Operation:   '=',
-			Type:        model.TYPE_CLUE_STRING,
 			StringValue: "ITOLITLS",
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING},
 		}},
 	} {
 
 		l := model.NewTest()
 		err := ParseLine(l, fixture.line)
 		assert.NoError(t, err, fixture.line)
-		assert.Equal(t, fixture.type_, l.Type.Name, fixture.line)
+		if fixture.Compare != nil {
+			assert.Equal(t, fixture.Compare.Type, l.Compare.Type, fixture.line)
+			assert.NotNil(t, l.Compare)
+		}
 		assert.Equal(t, fixture.Compare, l.Compare, fixture.line)
 	}
 

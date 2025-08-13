@@ -47,6 +47,7 @@ func notSpace(line string) int {
 
 // ParseLine parse the complete line
 func ParseLine(test *model.Test, line string) error {
+	// offset
 	poz := 0
 	end := notSpace(line)
 	err := ParseOffset(test.Offset, line[:end])
@@ -55,37 +56,27 @@ func ParseLine(test *model.Test, line string) error {
 	}
 	poz += end
 
+	// type
 	poz += spaces(line[poz:])
 	end = notSpace(line[poz:])
-
 	test.Type, err = ParseType(line[poz : poz+end])
 	if err != nil {
 		return err
 	}
 	poz += end
-	poz += spaces(line[poz:])
-	end = notSpace(line[poz:])
 
+	//compare
+	poz += spaces(line[poz:])
 	var size int
-	test.Compare, size, err = ParseCompare(line[poz:], test.Type.Clue_)
+	test.Compare, size, err = ParseCompare(line[poz:], test.Type)
 	if err != nil {
 		return fmt.Errorf("error in line [%v]: %v", line, err)
 	}
-	/* FIXME it's not the right place,
-	   Type and TypeName are part of Compare,
-	   they should be parsed in the same function*/
-	test.Compare.TypeName = line[poz : poz+end]
 	poz += size
+
+	//message
 	poz += spaces(line[poz:])
 	test.Message = line[poz:]
-	return nil
-}
 
-func Contains(needle byte, haystack string) bool {
-	for h := range haystack {
-		if h == int(needle) {
-			return true
-		}
-	}
-	return false
+	return nil
 }

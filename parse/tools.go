@@ -57,3 +57,12 @@ func IsOperation(op byte) bool {
 	}
 	return false
 }
+
+func Contains(needle byte, haystack string) bool {
+	for h := range haystack {
+		if h == int(needle) {
+			return true
+		}
+	}
+	return false
+}

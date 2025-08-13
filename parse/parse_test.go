@@ -51,46 +51,50 @@ func TestParseDynamicOffset(t *testing.T) {
 func TestParseCompare(t *testing.T) {
 	for _, fixture := range []struct {
 		line    string
-		clue    model.Clue
+		type_   *model.Type
 		size    int
 		compare *model.Compare
 	}{
-		{"<10", model.TYPE_CLUE_INT, 3, &model.Compare{
+		{"<10", &model.Type{Clue_: model.TYPE_CLUE_INT}, 3, &model.Compare{
 			Operation: COMPARE_LESS,
 			IntValue:  int64(10),
 		}},
-		{"< 10", model.TYPE_CLUE_INT, 4, &model.Compare{
+		{"< 10", &model.Type{Clue_: model.TYPE_CLUE_INT}, 4, &model.Compare{
 			Operation: COMPARE_LESS,
 			IntValue:  int64(10),
 		}},
-		{"0x01000007", model.TYPE_CLUE_INT, 10, &model.Compare{
+		{"0x01000007", &model.Type{Clue_: model.TYPE_CLUE_INT}, 10, &model.Compare{
 			Operation: COMPARE_EQUAL,
 			IntValue:  int64(16777223),
 		}},
-		{"!>10", model.TYPE_CLUE_INT, 4, &model.Compare{
+		{"!>10", &model.Type{Clue_: model.TYPE_CLUE_INT}, 4, &model.Compare{
 			Operation: COMPARE_GREATER,
 			IntValue:  int64(10),
 			Not:       true,
 		}},
-		{"D6E229D3-35DA-11D1-9034-00A0C90349BE", model.TYPE_CLUE_STRING, 36, &model.Compare{
+		{"D6E229D3-35DA-11D1-9034-00A0C90349BE", &model.Type{Clue_: model.TYPE_CLUE_STRING}, 36, &model.Compare{
 			Operation:   COMPARE_EQUAL,
 			StringValue: "D6E229D3-35DA-11D1-9034-00A0C90349BE",
 		}},
-		{`Invalid\ partition\ table		english`, model.TYPE_CLUE_STRING, 25, &model.Compare{
+		{`Invalid\ partition\ table		english`, &model.Type{Clue_: model.TYPE_CLUE_STRING}, 25, &model.Compare{
 			Operation:   COMPARE_EQUAL,
 			StringValue: "Invalid partition table",
 		}},
 	} {
-		c, s, err := ParseCompare(fixture.line, model.Clue(fixture.clue))
+		c, s, err := ParseCompare(fixture.line, fixture.type_)
 		assert.NoError(t, err)
-		fixture.compare.Type = fixture.clue // yes, it's cheating
+		fixture.compare.Type = fixture.type_ // yes, it's cheating
 		assert.Equal(t, fixture.compare, c, fixture.line)
 		assert.Equal(t, fixture.size, s, fixture.line)
 	}
 }
 
 func TestParseType(t *testing.T) {
-
+	type_, err := ParseType(`belong&0xfe00f0f0`)
+	assert.NoError(t, err)
+	assert.Equal(t, "belong", type_.Name)
+	assert.Equal(t, byte('&'), type_.Operator)
+	assert.Equal(t, "0xfe00f0f0", type_.Arg)
 }
 
 func TestParse(t *testing.T) {

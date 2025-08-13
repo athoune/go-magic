@@ -156,19 +156,24 @@ func ParseDynamicOffset(offset *model.Offset, line string) error {
 }
 
 // ParseCompare extract the operation, the value (typed) and the new position
-func ParseCompare(line string, clue model.Clue) (*model.Compare, int, error) {
+func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 	if line[0] == 'x' {
+		// FIXME is nil a good answer?
 		return nil, 1, nil
 	}
 	compare := &model.Compare{
-		Type: clue,
+		Type: type_,
 	}
 	var err error
 	poz := 0
+
+	// Not
 	if line[poz] == '!' {
 		compare.Not = true
 		poz++
 	}
+
+	// Operation
 	compare.Operation = line[poz]
 	if !IsOperation(compare.Operation) {
 		compare.Operation = '='
@@ -179,22 +184,21 @@ func ParseCompare(line string, clue model.Clue) (*model.Compare, int, error) {
 		poz++
 	}
 	end := HandleSpaceEscape(line[poz:])
+
+	// Value
 	value := line[poz : poz+end]
-	if clue == model.TYPE_CLUE_STRING {
-		value, _ = HandleStringEscape(value)
-	}
-	switch {
-	case clue == model.TYPE_CLUE_STRING:
+	switch type_.Clue_ {
+	case model.TYPE_CLUE_STRING:
 		compare.StringValue, err = HandleStringEscape(value)
 		if err != nil {
 			return nil, poz + end, err
 		}
-	case clue == model.TYPE_CLUE_FLOAT:
+	case model.TYPE_CLUE_FLOAT:
 		compare.FloatValue, err = strconv.ParseFloat(value, 64)
 		if err != nil {
 			return nil, poz + end, fmt.Errorf("can't parse float: %v in [%v]", value, line)
 		}
-	case clue == model.TYPE_CLUE_INT:
+	case model.TYPE_CLUE_INT:
 		// In filesystems#1160 there is :
 		// 0	lelong		0x1b031336L	Netboot image,
 		// In mail.news#91
@@ -211,7 +215,7 @@ func ParseCompare(line string, clue model.Clue) (*model.Compare, int, error) {
 		if err != nil {
 			return nil, poz + end, fmt.Errorf("can't parse int: %v in [%v]", value, line)
 		}
-	case clue == model.TYPE_CLUE_QUAD:
+	case model.TYPE_CLUE_QUAD:
 		if value == "0" {
 			compare.QuadValue = []int64{0}
 			return compare, poz + end, nil
@@ -235,7 +239,7 @@ func ParseCompare(line string, clue model.Clue) (*model.Compare, int, error) {
 			compare.QuadValue = []int64{v, 0}
 		}
 	default:
-		return nil, 0, fmt.Errorf("unknown clue: %v", clue)
+		return nil, 0, fmt.Errorf("unknown clue: %v", type_)
 	}
 	return compare, poz + end, nil
 }
@@ -247,18 +251,19 @@ func ParseType(line string) (*model.Type, error) {
 		if i != -1 {
 			t.Name = line[:i]
 			t.Operator = o
-			t.Arg = line[i:]
+			t.Arg = line[i+1:]
 			break
 		}
 	}
 	if t.Name == "" {
 		t.Name = line
 	}
-	tt, ok := model.Types[t.Name]
+	//t.Root = t.Name // FIXME handle strange prefix : u ube le…
+	var ok bool
+	t.Clue_, ok = model.Types[t.Name]
 	if !ok {
 		return nil, fmt.Errorf("unknown type [%v]", t.Name)
 	}
-	t.Clue_ = tt.Clue_ // FIXME
 
 	return t, nil
 }

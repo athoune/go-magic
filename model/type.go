@@ -9,220 +9,84 @@ const (
 
 type Clue int
 type Type struct {
+	Root     string // ubelong -> long
 	Name     string
 	Clue_    Clue
 	Operator byte
 	Arg      string
 }
 
-var Types map[string]*Type
+var Types map[string]Clue
 
 func init() {
 	// FIXME Types should be map[string]Clue
-	Types = map[string]*Type{
-		"byte": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"ubyte": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"short": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"ushort": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"ubeshort": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"uleshort": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"long": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"ulong": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"ubelong": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"ulelong": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"quad": {
-			Clue_: TYPE_CLUE_QUAD,
-		},
-		"ubequad": {
-			Clue_: TYPE_CLUE_QUAD,
-		},
-		"uquad": {
-			Clue_: TYPE_CLUE_QUAD,
-		},
-		"ulequad": {
-			Clue_: TYPE_CLUE_QUAD,
-		},
-		"float": {
-			Clue_: TYPE_CLUE_FLOAT,
-		},
-		"double": {
-			Clue_: TYPE_CLUE_FLOAT,
-		},
-		"string": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"pstring": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"ustring": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"date": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"lemsdosdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"qdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"ldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"qldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"qwdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"uledate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"ubeqdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"lemsdostime": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"beid3": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"beshort": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"belong": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"bequad": {
-			Clue_: TYPE_CLUE_QUAD,
-		},
-		"befloat": {
-			Clue_: TYPE_CLUE_FLOAT,
-		},
-		"bedouble": {
-			Clue_: TYPE_CLUE_FLOAT,
-		},
-		"bedate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"beqdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"beldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"beqldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"beqwdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"bestring16": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"leid3": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"leshort": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"lelong": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"lequad": {
-			Clue_: TYPE_CLUE_QUAD,
-		},
-		"lefloat": {
-			Clue_: TYPE_CLUE_FLOAT,
-		},
-		"ledouble": {
-			Clue_: TYPE_CLUE_FLOAT,
-		},
-		"ledate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"leqdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"leldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"leqldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"leqwdate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"lestring16": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"melong": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"medate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"meldate": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"u4": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"u8": {
-			Clue_: TYPE_CLUE_INT,
-		},
-		"indirect": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"name": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"use": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"regex": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"search": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"default": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"clear": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"der": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"guid": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-		"offset": {
-			Clue_: TYPE_CLUE_STRING,
-		},
-	}
-	for k, v := range Types {
-		v.Name = k
+	Types = map[string]Clue{
+		"byte":        TYPE_CLUE_INT,
+		"ubyte":       TYPE_CLUE_INT,
+		"short":       TYPE_CLUE_INT,
+		"leshort":     TYPE_CLUE_INT,
+		"beshort":     TYPE_CLUE_INT,
+		"ushort":      TYPE_CLUE_INT,
+		"ubeshort":    TYPE_CLUE_INT,
+		"uleshort":    TYPE_CLUE_INT,
+		"u4":          TYPE_CLUE_INT,
+		"long":        TYPE_CLUE_INT,
+		"belong":      TYPE_CLUE_INT,
+		"ulong":       TYPE_CLUE_INT,
+		"ubelong":     TYPE_CLUE_INT,
+		"ulelong":     TYPE_CLUE_INT,
+		"lelong":      TYPE_CLUE_INT,
+		"u8":          TYPE_CLUE_INT,
+		"quad":        TYPE_CLUE_QUAD,
+		"ubequad":     TYPE_CLUE_QUAD,
+		"uquad":       TYPE_CLUE_QUAD,
+		"ulequad":     TYPE_CLUE_QUAD,
+		"float":       TYPE_CLUE_FLOAT,
+		"double":      TYPE_CLUE_FLOAT,
+		"string":      TYPE_CLUE_STRING,
+		"pstring":     TYPE_CLUE_STRING,
+		"ustring":     TYPE_CLUE_STRING,
+		"date":        TYPE_CLUE_STRING,
+		"lemsdosdate": TYPE_CLUE_STRING,
+		"qdate":       TYPE_CLUE_STRING,
+		"ldate":       TYPE_CLUE_STRING,
+		"qldate":      TYPE_CLUE_STRING,
+		"qwdate":      TYPE_CLUE_STRING,
+		"uledate":     TYPE_CLUE_STRING,
+		"ubeqdate":    TYPE_CLUE_STRING,
+		"lemsdostime": TYPE_CLUE_STRING,
+		"beid3":       TYPE_CLUE_STRING,
+		"bequad":      TYPE_CLUE_QUAD,
+		"befloat":     TYPE_CLUE_FLOAT,
+		"bedouble":    TYPE_CLUE_FLOAT,
+		"bedate":      TYPE_CLUE_STRING,
+		"beqdate":     TYPE_CLUE_STRING,
+		"beldate":     TYPE_CLUE_STRING,
+		"beqldate":    TYPE_CLUE_STRING,
+		"beqwdate":    TYPE_CLUE_STRING,
+		"bestring16":  TYPE_CLUE_STRING,
+		"leid3":       TYPE_CLUE_STRING,
+		"lequad":      TYPE_CLUE_QUAD,
+		"lefloat":     TYPE_CLUE_FLOAT,
+		"ledouble":    TYPE_CLUE_FLOAT,
+		"ledate":      TYPE_CLUE_STRING,
+		"leqdate":     TYPE_CLUE_STRING,
+		"leldate":     TYPE_CLUE_STRING,
+		"leqldate":    TYPE_CLUE_STRING,
+		"leqwdate":    TYPE_CLUE_STRING,
+		"lestring16":  TYPE_CLUE_STRING,
+		"melong":      TYPE_CLUE_STRING,
+		"medate":      TYPE_CLUE_STRING,
+		"meldate":     TYPE_CLUE_STRING,
+		"indirect":    TYPE_CLUE_STRING,
+		"name":        TYPE_CLUE_STRING,
+		"use":         TYPE_CLUE_STRING,
+		"regex":       TYPE_CLUE_STRING,
+		"search":      TYPE_CLUE_STRING,
+		"default":     TYPE_CLUE_STRING,
+		"clear":       TYPE_CLUE_STRING,
+		"der":         TYPE_CLUE_STRING,
+		"guid":        TYPE_CLUE_STRING,
+		"offset":      TYPE_CLUE_STRING,
 	}
 }
