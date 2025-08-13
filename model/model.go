@@ -12,11 +12,16 @@ type Offset struct {
 }
 
 type Compare struct {
-	Operation   byte // = > < & ^ ~
 	Not         bool // !
+	TypeName    string
+	Rawtype     string // ubelong -> long
+	Endianness  byte   // n, e, b <- native, little, big
+	Type        Clue
+	Operation   byte // = > < & ^ ~
 	StringValue string
 	FloatValue  float64
 	IntValue    int64
+	UIntValue   uint64
 	QuadValue   []int64
-	Type        Clue
+	UQuadValue  []uint64
 }
