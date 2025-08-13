@@ -71,6 +71,10 @@ func ParseLine(test *model.Test, line string) error {
 	if err != nil {
 		return fmt.Errorf("error in line [%v]: %v", line, err)
 	}
+	/* FIXME it's not the right place,
+	   Type and TypeName are part of Compare,
+	   they should be parsed in the same function*/
+	test.Compare.TypeName = line[poz : poz+end]
 	poz += size
 	poz += spaces(line[poz:])
 	test.Message = line[poz:]
