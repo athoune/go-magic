@@ -1,22 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/athoune/go-magic/parse"
+	"go.uber.org/zap"
 )
 
 func main() {
-	fmt.Println(os.Getwd())
+	logger := zap.NewExample()
+	wd, _ := os.Getwd()
 	path := os.Args[1]
+	logger.Info("",
+		zap.String("Current directory", wd),
+		zap.String("Path", path))
 	//path := "../../file/magic/Magdir"
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		panic(err)
 	}
 	for _, e := range entries {
-		fmt.Println("file :", e.Name(), "\n\n")
 		f, err := os.Open(path + "/" + e.Name())
 		if err != nil {
 			panic(err)
@@ -25,9 +28,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		for _, test := range tests {
-			fmt.Println(test)
-		}
+		logger.Info("Magic",
+			zap.String("File", e.Name()),
+			zap.Any("Tests", tests))
 	}
-
 }
