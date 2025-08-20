@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-	logger := zap.NewExample()
+	zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
+	logger := zap.L()
 	wd, _ := os.Getwd()
 	path := os.Args[1]
 	logger.Info("",
@@ -24,12 +25,9 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		tests, _, err := parse.Parse(f)
+		_, _, err = parse.Parse(f)
 		if err != nil {
 			panic(err)
 		}
-		logger.Info("Magic",
-			zap.String("File", e.Name()),
-			zap.Any("Tests", tests))
 	}
 }

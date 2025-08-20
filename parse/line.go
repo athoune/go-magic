@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/athoune/go-magic/model"
+	"go.uber.org/zap"
 )
 
 type step_test int
@@ -47,6 +48,7 @@ func notSpace(line string) int {
 
 // ParseLine parse the complete line
 func ParseLine(test *model.Test, line string) error {
+	defer zap.L().Info("ParseLine", zap.Any("Test", test))
 	// offset
 	poz := 0
 	end := notSpace(line)
