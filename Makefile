@@ -6,3 +6,7 @@ parse:
 test:
 	go test -v -cover ./parse
 	go test -v -cover ./ast
+
+govulncheck:
+	govulncheck parse/*.go
+	govulncheck model/*.go
