@@ -16,18 +16,8 @@ func main() {
 		zap.String("Current directory", wd),
 		zap.String("Path", path))
 	//path := "../../file/magic/Magdir"
-	entries, err := os.ReadDir(path)
+	_, err := parse.ParseFolder(path)
 	if err != nil {
 		panic(err)
-	}
-	for _, e := range entries {
-		f, err := os.Open(path + "/" + e.Name())
-		if err != nil {
-			panic(err)
-		}
-		_, _, err = parse.Parse(f)
-		if err != nil {
-			panic(err)
-		}
 	}
 }

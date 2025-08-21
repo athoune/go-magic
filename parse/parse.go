@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -42,6 +43,28 @@ func init() {
 	arg_dynamic_idx = dynamic_value_re.SubexpIndex("arg")
 }
 
+func ParseFolder(path string) (model.Files, error) {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	files := make(model.Files, 0)
+	for _, e := range entries {
+		f, err := os.Open(path + "/" + e.Name())
+		if err != nil {
+			return nil, err
+		}
+		tests, _, err := Parse(f)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, &model.File{
+			Name:  e.Name(),
+			Tests: tests,
+		})
+	}
+	return files, nil
+}
 func Parse(r io.Reader) (model.Tests, int, error) {
 	scanner := bufio.NewScanner(r)
 	var slugs []string
