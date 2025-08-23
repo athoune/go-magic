@@ -54,7 +54,7 @@ func ParseFolder(path string) (model.Files, error) {
 		if err != nil {
 			return nil, err
 		}
-		tests, _, err := Parse(f)
+		tests, _, err := Parse(f, e.Name())
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +65,7 @@ func ParseFolder(path string) (model.Files, error) {
 	}
 	return files, nil
 }
-func Parse(r io.Reader) (model.Tests, int, error) {
+func Parse(r io.Reader, name string) (model.Tests, int, error) {
 	scanner := bufio.NewScanner(r)
 	var slugs []string
 	var err error
@@ -92,6 +92,8 @@ func Parse(r io.Reader) (model.Tests, int, error) {
 			continue
 		}
 		test := model.NewTest()
+		test.Line = n_line - 1
+		test.File = name
 		err = ParseLine(test, line)
 		if err != nil {
 			return nil, n_line, err
@@ -180,12 +182,12 @@ func ParseDynamicOffset(offset *model.Offset, line string) error {
 
 // ParseCompare extract the operation, the value (typed) and the new position
 func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
-	if line[0] == 'x' {
-		// FIXME is nil a good answer?
-		return nil, 1, nil
-	}
 	compare := &model.Compare{
 		Type: type_,
+	}
+	if line[0] == 'x' {
+		compare.X = true
+		return compare, 1, nil
 	}
 	var err error
 	poz := 0

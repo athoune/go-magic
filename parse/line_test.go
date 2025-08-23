@@ -81,7 +81,9 @@ func TestParseLine(t *testing.T) {
 				Name:  "belong",
 				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>>>>&1	string		x		"%s"`, nil},
+		{`>>>>&1	string		x		"%s"`, &model.Compare{
+			X: true,
+		}},
 		{`0	search/8192	(input,`, &model.Compare{
 			Operation:   '=',
 			StringValue: "(input,",
@@ -174,14 +176,17 @@ func TestParseLine(t *testing.T) {
 				Name:  "string",
 				Clue_: model.TYPE_CLUE_STRING},
 		}},
-		{`>0x1D5		ubequad		0x2f30313233343536	configuration of Tasmota firmware (ESP8266)`, &model.Compare{
-			Operation: '=',
-			QuadValue: []int64{0x2f303132, 0x33343536},
-			Type: &model.Type{
-				Name:  "ubequad",
-				Clue_: model.TYPE_CLUE_QUAD},
+		{`>0x1D5		ubequad		0x2f30313233343536	configuration of Tasmota firmware (ESP8266)`,
+			&model.Compare{
+				Operation: '=',
+				QuadValue: []int64{0x2f303132, 0x33343536},
+				Type: &model.Type{
+					Name:  "ubequad",
+					Clue_: model.TYPE_CLUE_QUAD},
+			}},
+		{`>>11		ubyte^0x65	x			\b, version %u`, &model.Compare{
+			X: true,
 		}},
-		{`>>11		ubyte^0x65	x			\b, version %u`, nil},
 		{`0	lelong		0x1b031336L	Netboot image,`, &model.Compare{
 			Operation: '=',
 			IntValue:  0x1b031336,
@@ -204,28 +209,42 @@ func TestParseLine(t *testing.T) {
 				Name:  "ulelong",
 				Clue_: model.TYPE_CLUE_INT},
 		}},
-		{`>>>>>>(&4.l+(-4))	string		ITOLITLS	\b, Microsoft compiled help format 2.0`, &model.Compare{
-			Operation:   '=',
-			StringValue: "ITOLITLS",
-			Type: &model.Type{
-				Name:  "string",
-				Clue_: model.TYPE_CLUE_STRING},
-		}},
+		{`>>>>>>(&4.l+(-4))	string		ITOLITLS	\b, Microsoft compiled help format 2.0`,
+			&model.Compare{
+				Operation:   '=',
+				StringValue: "ITOLITLS",
+				Type: &model.Type{
+					Name:  "string",
+					Clue_: model.TYPE_CLUE_STRING},
+			}},
+		{`0	string	zz	MGR bitmap, old format, 1-bit deep, 16-bit aligned`,
+			&model.Compare{
+				Operation:   '=',
+				StringValue: "zz",
+				Type: &model.Type{
+					Name:  "string",
+					Clue_: model.TYPE_CLUE_STRING},
+			}},
 	} {
 
 		l := model.NewTest()
 		err := ParseLine(l, fixture.line)
 		assert.NoError(t, err, fixture.line)
-		if fixture.Compare != nil {
-			assert.Equal(t, fixture.Compare.Type, l.Compare.Type, fixture.line)
-			assert.NotNil(t, l.Compare)
-		}
+		assert.NotNil(t, l.Compare)
 		assert.Equal(t, fixture.Compare, l.Compare, fixture.line)
 	}
-
 }
 
 func TestNotSpace(t *testing.T) {
 	assert.Equal(t, 4, notSpace("plop"))
 	assert.Equal(t, 5, notSpace("beuha aussi"))
+}
+
+func TestTypeFilter(t *testing.T) {
+	te := model.NewTest()
+	err := ParseLine(te, `0	belong&0xffffff00	0xffd8ff00	JPEG image data`)
+	assert.NoError(t, err)
+	assert.Equal(t, byte('&'), te.Type.Operator)
+	assert.Equal(t, "0xffffff00", te.Type.Arg)
+	assert.Equal(t, "belong", te.Type.Name)
 }

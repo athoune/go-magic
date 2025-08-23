@@ -49,6 +49,8 @@ func notSpace(line string) int {
 // ParseLine parse the complete line
 func ParseLine(test *model.Test, line string) error {
 	defer zap.L().Info("ParseLine", zap.Any("Test", test))
+	test.Raw = line
+
 	// offset
 	poz := 0
 	end := notSpace(line)
