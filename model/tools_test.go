@@ -19,4 +19,8 @@ func TestEndianessSigned(t *testing.T) {
 	assert.Equal(t, e, NATIVE_ENDIAN)
 	assert.Equal(t, s, SIGNED)
 	assert.Equal(t, typ, "string")
+	s, e, typ = EndianessSigned("beshort")
+	assert.Equal(t, e, BIG_ENDIAN)
+	assert.Equal(t, s, SIGNED)
+	assert.Equal(t, typ, "short")
 }
