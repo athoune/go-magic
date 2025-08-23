@@ -7,6 +7,9 @@ type Test struct {
 	Message  string
 	SubTests []*Test
 	Actions  []*Action
+	File     string
+	Line     int
+	Raw      string // the unparsed line
 }
 
 func NewTest() *Test {

@@ -13,6 +13,7 @@ type Offset struct {
 
 type Compare struct {
 	Not         bool // !
+	X           bool // special value, always return true
 	Endianness  byte // n, e, b <- native, little, big
 	Type        *Type
 	Operation   byte // = > < & ^ ~
