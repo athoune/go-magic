@@ -1,6 +1,8 @@
 package ast
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 
 	"github.com/athoune/go-magic/model"
@@ -17,14 +19,16 @@ func NewRunner(files model.Files) *Runner {
 }
 
 func (r Runner) Magic(target io.ReadSeeker) (string, error) {
+	output := bytes.NewBufferString("")
 	for _, file := range r.Files {
+		fmt.Println(file.Names)
 		for _, t := range file.Tests {
-			test := NewTest(t)
-			_, err := test.Test(target)
+			test := NewTestResult(t, file.Names)
+			_, err := test.Test(target, output)
 			if err != nil {
 				return "", err
 			}
 		}
 	}
-	return "", nil
+	return output.String(), nil
 }
