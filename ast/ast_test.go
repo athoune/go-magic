@@ -1,9 +1,9 @@
 package ast
 
 import (
-	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/athoune/go-magic/model"
@@ -23,19 +23,19 @@ func TestTests(t *testing.T) {
 	assert.True(t, len(file.Names) > 0)
 	f_test, err := os.Open("../fixtures/kitty.jpg")
 	assert.NoError(t, err)
+	jfif := false
 	for _, tt := range file.Tests {
-		output := bytes.NewBufferString("")
+		output := &strings.Builder{}
 		test := NewTestResult(tt, file.Names)
 		ok, err := test.Test(f_test, output)
 		assert.NoError(t, err, file.Names)
 		msg := output.String()
-		if msg != "" {
-			fmt.Println("message:", msg)
-		}
+		jfif = jfif || strings.Contains(msg, "JFIF")
 		if ok {
 			fmt.Println("mime:", test.Mime, "ext:", test.Ext,
 				"apple:", test.Apple, "strength:", test.Strength)
 		}
 	}
+	assert.True(t, jfif)
 	//assert.False(t, true)
 }
