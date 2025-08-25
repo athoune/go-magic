@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/athoune/go-magic/model"
 	"github.com/athoune/go-magic/parse"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,13 +19,15 @@ func TestTests(t *testing.T) {
 	_, err = parse.Parse(f_rules, file)
 	assert.NoError(t, err)
 	f_rules.Close()
+	assert.NotNil(t, file.Names)
+	assert.True(t, len(file.Names) > 0)
 	f_test, err := os.Open("../fixtures/kitty.jpg")
 	assert.NoError(t, err)
 	for _, tt := range file.Tests {
 		output := bytes.NewBufferString("")
-		test := NewTest(tt)
+		test := NewTestResult(tt, file.Names)
 		ok, err := test.Test(f_test, output)
-		assert.NoError(t, err)
+		assert.NoError(t, err, file.Names)
 		msg := output.String()
 		if msg != "" {
 			fmt.Println("message:", msg)

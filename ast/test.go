@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/athoune/go-magic/model"
 )
@@ -19,36 +20,90 @@ func init() {
 	}
 }
 
-type Test struct {
-	test   *model.Test
-	target io.ReadSeeker
+type TestResult struct {
+	test     *model.Test
+	target   io.ReadSeeker
+	named    map[string]*model.Test
+	Strength int
+	Mime     string
+	Ext      string
+	Apple    string // Apple type for Mac OS 9 and older
 }
 
-func NewTest(test *model.Test) *Test {
-	return &Test{
-		test: test,
+func NewTestResult(test *model.Test, named map[string]*model.Test) *TestResult {
+	return &TestResult{
+		test:  test,
+		named: named,
 	}
 }
 
-func (t *Test) Test(target io.ReadSeeker) (string, error) {
+func (t *TestResult) Test(target io.ReadSeeker, output io.Writer) (bool, error) {
 	_, err := target.Seek(0, io.SeekStart)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 	t.target = target
 	t.offset()
 	c, _, err := t.compare()
 	if err != nil {
-		return "", err
+		return false, err
+	}
+	if t.test.Type.Name == "use" {
+		namedTest, ok := t.named[t.test.Compare.StringValue]
+		if !ok {
+			return false, fmt.Errorf("unknown name: '%s'", t.test.Compare.StringValue)
+		}
+		_, err = NewTestResult(namedTest, t.named).Test(target, output)
+		if err != nil {
+			return false, err
+		}
 	}
 	if c {
-		fmt.Println(t.test.Raw)
+		for _, action := range t.test.Actions {
+			err = t.action(action)
+			if err != nil {
+				return false, err
+			}
+		}
+		for _, sub := range t.test.SubTests {
+			_, err = NewTestResult(sub, t.named).Test(target, output)
+			if err != nil {
+				return false, err
+			}
+		}
+		return true, nil
 	}
-	return "", nil
+	return false, nil
+}
+
+func (t *TestResult) action(a *model.Action) error {
+	switch a.Name {
+	case "mime":
+		t.Mime = a.Arg
+	case "apple":
+		t.Apple = a.Arg
+	case "ext":
+		t.Ext = a.Arg
+	case "strength":
+		operator := a.Arg[0]
+		value, err := strconv.Atoi(a.Arg[1:])
+		if err != nil {
+			return err
+		}
+		switch operator {
+		case '*':
+			t.Strength = t.Strength * value
+		default:
+			return fmt.Errorf("strenght action: unknown operator '%v' in '%s'", operator, a.Arg)
+		}
+	default:
+		return fmt.Errorf("action: unknown action '%v'", a.Name)
+	}
+	return nil
 }
 
 // offset seeks the target
-func (t *Test) offset() {
+func (t *TestResult) offset() {
 	if t.test.Offset.Relative {
 		// TODO
 	} else {
@@ -57,7 +112,7 @@ func (t *Test) offset() {
 }
 
 // compare return compare result, is special and error
-func (t *Test) compare() (bool, bool, error) {
+func (t *TestResult) compare() (bool, bool, error) {
 	signed, byteOrder, typ := model.EndianessSigned(t.test.Type.Name)
 
 	var bo binary.ByteOrder
@@ -99,7 +154,7 @@ func (t *Test) compare() (bool, bool, error) {
 
 	cmp, ok := TYPE_COMPARATORS[typ]
 	if !ok {
-		return false, false, fmt.Errorf("unknown type: %v", typ)
+		return false, false, fmt.Errorf("unknown type: %v in `%s`", typ, t.test.Raw)
 	}
 	return cmp.compare(buff, bo, signed, t.test.Type, t.test.Compare)
 }
