@@ -163,7 +163,7 @@ func (t *TestResult) compare() (bool, bool, error) {
 	switch typ { // All the special cases
 	case "name":
 		// Like a LABEL
-		return false, true, nil
+		return true, true, nil
 	case "use":
 		// It's just a GOTO
 		return false, true, nil
