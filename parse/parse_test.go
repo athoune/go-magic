@@ -119,7 +119,7 @@ func TestParse(t *testing.T) {
 	assert.Len(t, test.SubTests, 2)
 	assert.Equal(t, "images", test.File)
 	assert.Equal(t, 1, test.Line)
-
+	assert.Equal(t, `>33	string		\x00\x00\x00\x08acTL	\b, animated`, test.SubTests[1].Raw)
 }
 func TestRead(t *testing.T) {
 	r := strings.NewReader(`
