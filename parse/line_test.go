@@ -22,7 +22,6 @@ func TestNotSpaces(t *testing.T) {
 	i = notSpace("beuha")
 	assert.Equal(t, 5, i)
 }
-
 func TestParseLine(t *testing.T) {
 	for _, fixture := range []struct {
 		line    string
@@ -83,6 +82,10 @@ func TestParseLine(t *testing.T) {
 		}},
 		{`>>>>&1	string		x		"%s"`, &model.Compare{
 			X: true,
+			Type: &model.Type{
+				Name:  "string",
+				Clue_: model.TYPE_CLUE_STRING,
+			},
 		}},
 		{`0	search/8192	(input,`, &model.Compare{
 			Operation:   '=',
@@ -186,6 +189,12 @@ func TestParseLine(t *testing.T) {
 			}},
 		{`>>11		ubyte^0x65	x			\b, version %u`, &model.Compare{
 			X: true,
+			Type: &model.Type{
+				Name:     "ubyte",
+				Clue_:    model.TYPE_CLUE_INT,
+				Operator: '^',
+				Arg:      "0x65",
+			},
 		}},
 		{`0	lelong		0x1b031336L	Netboot image,`, &model.Compare{
 			Operation: '=',
