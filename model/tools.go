@@ -14,6 +14,11 @@ type SIGN byte
 type BYTE_ORDER byte
 
 func EndianessSigned(txt string) (SIGN, BYTE_ORDER, string) {
+	for _, n := range []string{"name", "use"} { // something like label/goto
+		if txt == n {
+			return SIGNED, NATIVE_ENDIAN, txt
+		}
+	}
 	switch {
 	case strings.HasPrefix(txt, "ube"):
 		return UNSIGNED, BIG_ENDIAN, txt[3:]
