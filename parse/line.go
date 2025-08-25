@@ -16,12 +16,6 @@ const (
 	STEP_MESSAGE
 )
 
-type TestLineParser struct {
-	test *model.Test
-	step step_test
-	poz  int
-}
-
 // ParseLine parse the complete line
 func ParseLine(test *model.Test, line string) error {
 	defer zap.L().Info("ParseLine", zap.Any("Test", test))
