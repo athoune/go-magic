@@ -111,10 +111,12 @@ func TestParse(t *testing.T) {
 >>45	ubelong		1			\b, %d repetition)
 >>45	ubelong		>1			\b, %d repetitions)`
 
-	tests, _, err := Parse(strings.NewReader(fixture), "images")
+	file := model.NewFile()
+	file.Name = "images"
+	_, err := Parse(strings.NewReader(fixture), file)
 	assert.NoError(t, err)
-	assert.Len(t, tests, 1)
-	test := tests[0]
+	assert.Len(t, file.Tests, 1)
+	test := file.Tests[0]
 	assert.Len(t, test.Actions, 3)
 	assert.Len(t, test.SubTests, 2)
 	assert.Equal(t, "images", test.File)
@@ -131,8 +133,11 @@ func TestRead(t *testing.T) {
 >12	string		LIB_		\b, ALF library
 0	string		Draw		RISC OS Draw file data
 `)
-	tests, _, _ := Parse(r, "risc")
-	for _, test := range tests {
+	file := model.NewFile()
+	file.Name = "risc"
+	_, err := Parse(r, file)
+	assert.NoError(t, err)
+	for _, test := range file.Tests {
 		fmt.Println(test)
 	}
 }

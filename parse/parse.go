@@ -54,28 +54,28 @@ func ParseFolder(path string) (model.Files, error) {
 		if err != nil {
 			return nil, err
 		}
-		tests, _, err := Parse(f, e.Name())
+		file := model.NewFile()
+		file.Name = e.Name()
+		_, err = Parse(f, file)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, &model.File{
-			Name:  e.Name(),
-			Tests: tests,
-		})
+		files = append(files, file)
 	}
 	return files, nil
 }
-func Parse(r io.Reader, name string) (model.Tests, int, error) {
+
+func Parse(r io.Reader, file *model.File) (int, error) {
 	scanner := bufio.NewScanner(r)
 	var slugs []string
 	var err error
-	tests := NewTests()
+	testsParsing := NewTestsParsing()
 	n_line := 0
 	for scanner.Scan() {
 		n_line += 1
 		line := scanner.Text()
 		if err = scanner.Err(); err != nil {
-			return nil, n_line, err
+			return n_line, err
 		}
 		if len(line) == 0 { // empty
 			continue
@@ -85,7 +85,7 @@ func Parse(r io.Reader, name string) (model.Tests, int, error) {
 		}
 		if strings.HasPrefix(line, "!:") {
 			slugs = spaces_re.Split(line[2:], -1)
-			tests.AppendAction(&model.Action{
+			testsParsing.AppendAction(&model.Action{
 				Name: slugs[0],
 				Arg:  slugs[1],
 			})
@@ -93,14 +93,18 @@ func Parse(r io.Reader, name string) (model.Tests, int, error) {
 		}
 		test := model.NewTest()
 		test.Line = n_line - 1
-		test.File = name
+		test.File = file.Name
 		err = ParseLine(test, line)
 		if err != nil {
-			return nil, n_line, err
+			return n_line, err
 		}
-		tests.AppendTest(test)
+		if test.Type.Name == "name" {
+			file.Names[test.Compare.StringValue] = test
+		}
+		testsParsing.AppendTest(test)
 	}
-	return tests.Tests, n_line, nil
+	file.Tests = testsParsing.Tests
+	return n_line, nil
 }
 func ParseOffset(offset *model.Offset, line string) error {
 	if line == "" {

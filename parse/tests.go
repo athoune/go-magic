@@ -2,20 +2,20 @@ package parse
 
 import "github.com/athoune/go-magic/model"
 
-type Tests struct {
+type TestsParsing struct {
 	Tests     model.Tests
 	offsets   map[int]*model.Test
 	lastLevel int
 }
 
-func NewTests() *Tests {
-	return &Tests{
+func NewTestsParsing() *TestsParsing {
+	return &TestsParsing{
 		Tests:   make(model.Tests, 0),
 		offsets: make(map[int]*model.Test),
 	}
 }
 
-func (t *Tests) AppendTest(test *model.Test) {
+func (t *TestsParsing) AppendTest(test *model.Test) {
 	t.offsets[test.Offset.Level] = test
 	t.lastLevel = test.Offset.Level
 	if test.Offset.Level == 0 {
@@ -25,6 +25,6 @@ func (t *Tests) AppendTest(test *model.Test) {
 	}
 }
 
-func (t *Tests) AppendAction(action *model.Action) {
+func (t *TestsParsing) AppendAction(action *model.Action) {
 	t.offsets[t.lastLevel].Actions = append(t.offsets[t.lastLevel].Actions, action)
 }
