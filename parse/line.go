@@ -2,7 +2,6 @@ package parse
 
 import (
 	"fmt"
-	"unicode"
 
 	"github.com/athoune/go-magic/model"
 	"go.uber.org/zap"
@@ -23,29 +22,6 @@ type TestLineParser struct {
 	poz  int
 }
 
-func spaces(line string) int {
-	poz := 0
-	for i := range line {
-		if !unicode.IsSpace(rune(line[i])) {
-			break
-		}
-		poz++
-	}
-	return poz
-}
-
-func notSpace(line string) int {
-	// nor CR
-	poz := 0
-	for i := range line {
-		if unicode.IsSpace(rune(line[i])) {
-			break
-		}
-		poz++
-	}
-	return poz
-}
-
 // ParseLine parse the complete line
 func ParseLine(test *model.Test, line string) error {
 	defer zap.L().Info("ParseLine", zap.Any("Test", test))
@@ -61,7 +37,7 @@ func ParseLine(test *model.Test, line string) error {
 	poz += end
 
 	// type
-	poz += spaces(line[poz:])
+	poz += space(line[poz:])
 	end = notSpace(line[poz:])
 	test.Type, err = ParseType(line[poz : poz+end])
 	if err != nil {
@@ -70,7 +46,7 @@ func ParseLine(test *model.Test, line string) error {
 	poz += end
 
 	//compare
-	poz += spaces(line[poz:])
+	poz += space(line[poz:])
 	var size int
 	test.Compare, size, err = ParseCompare(line[poz:], test.Type)
 	if err != nil {
@@ -79,7 +55,7 @@ func ParseLine(test *model.Test, line string) error {
 	poz += size
 
 	//message
-	poz += spaces(line[poz:])
+	poz += space(line[poz:])
 	test.Message = line[poz:]
 
 	return nil

@@ -3,6 +3,7 @@ package parse
 import (
 	"bytes"
 	"strconv"
+	"unicode"
 )
 
 // HandleSpaceEscape line is closed by some spaces, but it handles escape : "\ "
@@ -22,6 +23,7 @@ func HandleSpaceEscape(line string) int {
 	}
 	return end
 }
+
 func HandleStringEscape(value string) (string, error) {
 	poz := 0
 	out := &bytes.Buffer{}
@@ -65,4 +67,29 @@ func Contains(needle byte, haystack string) bool {
 		}
 	}
 	return false
+}
+
+// space find the first space (\n, \t, something like that) in a string
+func space(line string) int {
+	poz := 0
+	for i := range line {
+		if !unicode.IsSpace(rune(line[i])) {
+			break
+		}
+		poz++
+	}
+	return poz
+}
+
+// notSpace find the first non-space character in a string
+func notSpace(line string) int {
+	// nor CR
+	poz := 0
+	for i := range line {
+		if unicode.IsSpace(rune(line[i])) {
+			break
+		}
+		poz++
+	}
+	return poz
 }

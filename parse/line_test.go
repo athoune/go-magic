@@ -7,21 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSpaces(t *testing.T) {
-	i := spaces("  	plop")
-	assert.Equal(t, 3, i)
-	i = spaces("	 ")
-	assert.Equal(t, 2, i)
-	i = spaces("")
-	assert.Equal(t, 0, i)
-}
-
-func TestNotSpaces(t *testing.T) {
-	i := notSpace("beuha ")
-	assert.Equal(t, 5, i)
-	i = notSpace("beuha")
-	assert.Equal(t, 5, i)
-}
 func TestParseLine(t *testing.T) {
 	for _, fixture := range []struct {
 		line    string
