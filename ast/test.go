@@ -93,16 +93,27 @@ func (t *TestResult) action(a *model.Action) error {
 	case "ext":
 		t.Ext = a.Arg
 	case "strength":
+		/*
+			The operand OP can be: +, -, *, or / and VALUE is a constant between 0 and 255.
+			This constant is applied using the specified operand to the currently computed
+			default magic strength.
+		*/
 		operator := a.Arg[0]
 		value, err := strconv.Atoi(a.Arg[1:])
 		if err != nil {
 			return err
 		}
 		switch operator {
+		case '+':
+			t.Strength = t.Strength + value
+		case '-':
+			t.Strength = t.Strength - value
 		case '*':
 			t.Strength = t.Strength * value
+		case '/':
+			t.Strength = t.Strength / value
 		default:
-			return fmt.Errorf("strenght action: unknown operator '%v' in '%s'", operator, a.Arg)
+			return fmt.Errorf("strength action: unknown operator '%v' in '%s'", operator, a.Arg)
 		}
 	default:
 		return fmt.Errorf("action: unknown action '%v'", a.Name)
