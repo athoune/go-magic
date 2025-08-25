@@ -10,3 +10,4 @@ test:
 govulncheck:
 	govulncheck parse/*.go
 	govulncheck model/*.go
+	govulncheck ast/*.go
