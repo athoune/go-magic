@@ -69,7 +69,7 @@ func Contains(needle byte, haystack string) bool {
 	return false
 }
 
-// space find the first space (\n, \t, something like that) in a string
+// space read all spaces, return the position before the first non space character
 func space(line string) int {
 	poz := 0
 	for i := range line {
@@ -81,7 +81,7 @@ func space(line string) int {
 	return poz
 }
 
-// notSpace find the first non-space character in a string
+// notSpace the position before the first non space charactert
 func notSpace(line string) int {
 	// nor CR
 	poz := 0

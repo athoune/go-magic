@@ -193,8 +193,13 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 		compare.X = true
 		return compare, 1, nil
 	}
-	var err error
 	poz := 0
+	if type_.Name == "name" {
+		end := notSpace(line)
+		compare.StringValue = line[:end]
+		return compare, end, nil
+	}
+	var err error
 
 	// Not
 	if line[poz] == '!' {

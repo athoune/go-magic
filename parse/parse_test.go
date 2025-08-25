@@ -83,10 +83,19 @@ func TestParseCompare(t *testing.T) {
 	} {
 		c, s, err := ParseCompare(fixture.line, fixture.type_)
 		assert.NoError(t, err)
+		// [FIXME]
 		fixture.compare.Type = fixture.type_ // yes, it's cheating
 		assert.Equal(t, fixture.compare, c, fixture.line)
 		assert.Equal(t, fixture.size, s, fixture.line)
 	}
+}
+
+func TestParseCompareName(t *testing.T) {
+	c, _, err := ParseCompare(`jpeg`, &model.Type{
+		Name: "name",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "jpeg", c.StringValue)
 }
 
 func TestParseType(t *testing.T) {
