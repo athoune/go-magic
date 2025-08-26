@@ -118,7 +118,8 @@ func TestParse(t *testing.T) {
 >>41	ubelong		>1			(%d frames
 >>45	ubelong		0			\b, infinite repetitions)
 >>45	ubelong		1			\b, %d repetition)
->>45	ubelong		>1			\b, %d repetitions)`
+>>45	ubelong		>1			\b, %d repetitions)
+`
 
 	file := model.NewFile()
 	file.Name = "images"
@@ -131,6 +132,7 @@ func TestParse(t *testing.T) {
 	assert.Equal(t, "images", test.File)
 	assert.Equal(t, 1, test.Line)
 	assert.Equal(t, `>33	string		\x00\x00\x00\x08acTL	\b, animated`, test.SubTests[1].Raw)
+	assert.Len(t, test.SubTests[1].SubTests, 5)
 }
 func TestRead(t *testing.T) {
 	r := strings.NewReader(`
