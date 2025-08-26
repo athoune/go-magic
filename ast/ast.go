@@ -23,8 +23,8 @@ func (r Runner) Magic(target io.ReadSeeker) (string, error) {
 	for _, file := range r.Files {
 		fmt.Println(file.Names)
 		for _, t := range file.Tests {
-			test := NewTestResult(t, file.Names)
-			_, err := test.Test(target, output)
+			test := NewTestResult(t, file.Names, output)
+			_, err := test.Test(target)
 			if err != nil {
 				return "", err
 			}

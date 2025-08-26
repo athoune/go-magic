@@ -26,8 +26,8 @@ func TestTests(t *testing.T) {
 	jfif := false
 	for _, tt := range file.Tests {
 		output := &strings.Builder{}
-		test := NewTestResult(tt, file.Names)
-		ok, err := test.Test(f_test, output)
+		test := NewTestResult(tt, file.Names, output)
+		ok, err := test.Test(f_test)
 		assert.NoError(t, err, file.Names)
 		msg := output.String()
 		jfif = jfif || strings.Contains(msg, "JFIF")

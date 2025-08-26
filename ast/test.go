@@ -24,20 +24,22 @@ type TestResult struct {
 	test     *model.Test
 	target   io.ReadSeeker
 	named    map[string]*model.Test
+	output   io.Writer
 	Strength int
 	Mime     string
 	Ext      string
 	Apple    string // Apple type for Mac OS 9 and older
 }
 
-func NewTestResult(test *model.Test, named map[string]*model.Test) *TestResult {
+func NewTestResult(test *model.Test, named map[string]*model.Test, output io.Writer) *TestResult {
 	return &TestResult{
-		test:  test,
-		named: named,
+		test:   test,
+		named:  named,
+		output: output,
 	}
 }
 
-func (t *TestResult) Test(target io.ReadSeeker, output io.Writer) (bool, error) {
+func (t *TestResult) Test(target io.ReadSeeker) (bool, error) {
 	_, err := target.Seek(0, io.SeekStart)
 	if err != nil {
 		return false, err
@@ -53,7 +55,7 @@ func (t *TestResult) Test(target io.ReadSeeker, output io.Writer) (bool, error) 
 		if !ok {
 			return false, fmt.Errorf("unknown name: '%s'", t.test.Compare.StringValue)
 		}
-		_, err = NewTestResult(namedTest, t.named).Test(target, output)
+		_, err = NewTestResult(namedTest, t.named, t.output).Test(target)
 		if err != nil {
 			return false, err
 		}
@@ -66,7 +68,7 @@ func (t *TestResult) Test(target io.ReadSeeker, output io.Writer) (bool, error) 
 			}
 		}
 		for _, sub := range t.test.SubTests {
-			_, err = NewTestResult(sub, t.named).Test(target, output)
+			_, err = NewTestResult(sub, t.named, t.output).Test(target)
 			if err != nil {
 				return false, err
 			}
