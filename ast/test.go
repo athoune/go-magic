@@ -180,10 +180,22 @@ func operation[V int64 | uint64](current, expected V, operation byte) bool {
 	return false
 }
 
-func operationString(current, expected string, operation byte) bool {
-	switch operation {
-	case '=':
-		return current == expected
+func (t *TestResult) message() error {
+	if t.test.Message.IsDisplayable {
+		if !t.test.Message.IsTemplate {
+			_, err := t.output.Write([]byte(t.test.Message.Value))
+			return err
+		}
+		switch t.test.Type.Clue_ {
+		case model.TYPE_CLUE_INT:
+			_, err := fmt.Fprintf(t.output, t.test.Message.Value, t.test.Compare.IntValue)
+			return err
+		case model.TYPE_CLUE_STRING:
+			_, err := fmt.Fprintf(t.output, t.test.Message.Value, t.test.Compare.StringValue)
+			return err
+		default:
+			return fmt.Errorf("unknown type for info: '%v'", t.test.Type.Clue_)
+		}
 	}
 	return false
 }

@@ -31,9 +31,10 @@ func TestTests(t *testing.T) {
 		assert.NoError(t, err, file.Names)
 		msg := output.String()
 		jfif = jfif || strings.Contains(msg, "JFIF")
-		if ok {
+		if ok && test.test.Type.Name != "name" {
 			fmt.Println("mime:", test.Mime, "ext:", test.Ext,
 				"apple:", test.Apple, "strength:", test.Strength)
+			fmt.Println(test.test.Raw)
 		}
 	}
 	assert.True(t, jfif)
