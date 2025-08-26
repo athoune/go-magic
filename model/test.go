@@ -4,7 +4,7 @@ type Test struct {
 	Offset   *Offset
 	Type     *Type
 	Compare  *Compare
-	Message  string
+	Message  *Message
 	SubTests []*Test
 	Actions  []*Action
 	File     string

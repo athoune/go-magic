@@ -1,4 +1,4 @@
-package ast
+package unpack
 
 import (
 	"encoding/binary"
@@ -6,27 +6,22 @@ import (
 	"github.com/athoune/go-magic/model"
 )
 
-var TYPE_COMPARATORS map[string]typeFilter
+type typeComparator func(value []byte, bo binary.ByteOrder, signed model.SIGN,
+	typ *model.Type, compare *model.Compare) (bool, bool, error)
+
+var TYPE_COMPARATORS map[string]typeComparator
 
 func init() {
-	TYPE_COMPARATORS = map[string]typeFilter{
-		"byte":   &ByteComparator{},
-		"short":  &ShortComparator{},
-		"long":   &LongComparator{},
-		"quad":   &QuadComparator{},
-		"string": &StringComparator{},
+	TYPE_COMPARATORS = map[string]typeComparator{
+		"byte":   ByteComparator,
+		"short":  ShortComparator,
+		"long":   LongComparator,
+		"quad":   QuadComparator,
+		"string": StringComparator,
 	}
 }
 
-type typeFilter interface {
-	compare(value []byte, bo binary.ByteOrder, signed model.SIGN,
-		typ *model.Type, compare *model.Compare) (bool, bool, error)
-}
-
-type ByteComparator struct {
-}
-
-func (l *ByteComparator) compare(buff []byte, bo binary.ByteOrder, signed model.SIGN,
+func ByteComparator(buff []byte, bo binary.ByteOrder, signed model.SIGN,
 	typ *model.Type, compare *model.Compare) (bool, bool, error) {
 	if signed == model.SIGNED {
 		return operation(
@@ -45,10 +40,7 @@ func (l *ByteComparator) compare(buff []byte, bo binary.ByteOrder, signed model.
 	}
 }
 
-type ShortComparator struct {
-}
-
-func (l *ShortComparator) compare(buff []byte, bo binary.ByteOrder, signed model.SIGN,
+func ShortComparator(buff []byte, bo binary.ByteOrder, signed model.SIGN,
 	typ *model.Type, compare *model.Compare) (bool, bool, error) {
 	if signed == model.SIGNED {
 		v, err := filterInt(int64(bo.Uint16(buff)), typ)
@@ -75,10 +67,7 @@ func (l *ShortComparator) compare(buff []byte, bo binary.ByteOrder, signed model
 	}
 }
 
-type LongComparator struct {
-}
-
-func (l *LongComparator) compare(buff []byte, bo binary.ByteOrder, signed model.SIGN,
+func LongComparator(buff []byte, bo binary.ByteOrder, signed model.SIGN,
 	typ *model.Type, compare *model.Compare) (bool, bool, error) {
 	if signed == model.SIGNED {
 		v, err := filterInt(int64(bo.Uint32(buff)), typ)
@@ -105,10 +94,7 @@ func (l *LongComparator) compare(buff []byte, bo binary.ByteOrder, signed model.
 	}
 }
 
-type QuadComparator struct {
-}
-
-func (l *QuadComparator) compare(buff []byte, bo binary.ByteOrder, signed model.SIGN,
+func QuadComparator(buff []byte, bo binary.ByteOrder, signed model.SIGN,
 	typ *model.Type, compare *model.Compare) (bool, bool, error) {
 	if signed == model.SIGNED {
 		v, err := filterInt(int64(bo.Uint32(buff)), typ)
@@ -135,10 +121,7 @@ func (l *QuadComparator) compare(buff []byte, bo binary.ByteOrder, signed model.
 	}
 }
 
-type StringComparator struct {
-}
-
-func (l *StringComparator) compare(buff []byte, bo binary.ByteOrder, signed model.SIGN,
+func StringComparator(buff []byte, bo binary.ByteOrder, signed model.SIGN,
 	typ *model.Type, compare *model.Compare) (bool, bool, error) {
 
 	return operationString(compare.StringValue,

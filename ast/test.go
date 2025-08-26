@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/athoune/go-magic/model"
 )
@@ -60,13 +59,6 @@ func (t *TestResult) Test(target io.ReadSeeker, output io.Writer) (bool, error) 
 		}
 	}
 	if c {
-		if strings.HasPrefix(t.test.Message, `\b`) {
-			_, err = output.Write([]byte(t.test.Message[3:]))
-			if err != nil {
-				return false, err
-			}
-			output.Write([]byte("\n"))
-		}
 		for _, action := range t.test.Actions {
 			err = t.action(action)
 			if err != nil {

@@ -50,7 +50,10 @@ func ParseLine(test *model.Test, line string) error {
 
 	//message
 	poz += space(line[poz:])
-	test.Message = line[poz:]
+	test.Message = &model.Message{
+		Value: line[poz:],
+	}
+	model.SetTemplateBooleans(test.Message)
 
 	return nil
 }
