@@ -10,43 +10,63 @@ import (
 )
 
 func TestUnpackSignedByte(t *testing.T) {
-	l, v, err := ReadByte(bytes.NewBuffer([]byte{12, 14, 3}), model.SIGNED)
+	typ := &model.Type{
+		Signed: true,
+		Root:   "byte",
+	}
+	v, l, err := ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3}))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, l)
-	assert.Equal(t, int64(12), v)
+	assert.Equal(t, int64(12), v.IntValue)
 }
 func TestUnpackSignedShort(t *testing.T) {
-	l, v, err := ReadShort(bytes.NewBuffer([]byte{12, 14, 3}), binary.BigEndian)
+	typ := &model.Type{
+		Endianness: model.LITTLE_ENDIAN,
+		Root:       "short",
+		Signed:     true,
+	}
+	v, l, err := ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3}))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, l)
-	assert.Equal(t, int64(12*256+14), v)
+	assert.Equal(t, int64(12+14*256), v.IntValue)
 
-	l, v, err = ReadShort(bytes.NewBuffer([]byte{12, 14, 3}), binary.LittleEndian)
+	typ.Endianness = model.BIG_ENDIAN
+
+	v, l, err = ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3}))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, l)
-	assert.Equal(t, int64(14*256+12), v)
+	assert.Equal(t, int64(12+14*256), v.IntValue)
 }
 
 func TestUnpackSignedLong(t *testing.T) {
-	l, v, err := ReadLong(bytes.NewBuffer([]byte{12, 14, 3, 27, 53, 254}), binary.BigEndian)
+	typ := &model.Type{
+		Root:       "long",
+		Endianness: model.LITTLE_ENDIAN,
+		Signed:     true,
+	}
+	v, l, err := ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3, 27, 53, 254}))
 	assert.NoError(t, err)
 	assert.Equal(t, 4, l)
-	assert.Equal(t, int64(12*16777216+14*65536+3*256+27), v)
+	assert.Equal(t, int64(12+14*256+3*256*256+27*256*256*256), v.IntValue)
 
-	l, v, err = ReadLong(bytes.NewBuffer([]byte{12, 14, 3, 27, 53, 254}), binary.LittleEndian)
+	typ.Endianness = model.BIG_ENDIAN
+	v, l, err = ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3, 27, 53, 254}))
 	assert.NoError(t, err)
 	assert.Equal(t, 4, l)
-	assert.Equal(t, int64(27*16777216+3*65536+14*256+12), v)
+	assert.Equal(t, int64(27*256*256*256+3*256*256+14*256+12), v.IntValue)
 }
 
 func TestUnpackSignedQuad(t *testing.T) {
-	vv := []byte{12, 14, 3, 27, 53, 254, 7, 9, 27, 128}
-	for _, bo := range []binary.ByteOrder{binary.BigEndian, binary.LittleEndian} {
-		l, v, err := ReadQuad(bytes.NewBuffer(vv), bo)
-		assert.NoError(t, err)
-		assert.Equal(t, 8, l)
-		assert.Equal(t, bin2int(vv[:8], bo), v, bo)
+	typ := &model.Type{
+		Endianness: model.LITTLE_ENDIAN,
+		Root:       "quad",
+		Signed:     true,
 	}
+	vv := []byte{12, 14, 3, 27, 53, 254, 7, 9, 27, 128}
+	v, l, err := ReadToValue(typ, bytes.NewReader(vv))
+	assert.NoError(t, err)
+	assert.Equal(t, 8, l)
+	assert.Equal(t, bin2int(vv, modelByteOrderToBinaryByteOrder(typ.Endianness)), v.IntValue)
 }
 
 func bin2int(bytes_ []byte, bo binary.ByteOrder) int64 {

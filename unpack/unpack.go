@@ -2,61 +2,154 @@ package unpack
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/athoune/go-magic/model"
 )
 
-func ReadByte(r io.Reader, signed model.SIGN) (int, int64, error) {
-	buff := make([]byte, 1)
-	_, err := r.Read(buff)
-	if err != nil {
-		return 1, 0, err
+func modelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
+	switch bo {
+	case model.LITTLE_ENDIAN:
+		return binary.LittleEndian
+	case model.BIG_ENDIAN:
+		return binary.LittleEndian
+	default:
+		return binary.NativeEndian
 	}
-	// [FIXME] handle Endianness
-	if signed == model.SIGNED {
-		return 1, int64(buff[0]), nil
-	}
-	return 1, int64(buff[0]), nil
 }
 
-func ReadUShort(r io.Reader, bo binary.ByteOrder) (int, uint64, error) {
-	buff := make([]byte, 2)
-	_, err := r.Read(buff)
-	if err != nil {
-		return 1, 0, err
+func StringValue(typ *model.Type, txt string) (*model.Value, error) {
+	var err error
+	v := &model.Value{
+		Clue: typ.Clue_,
 	}
-	return 2, uint64(bo.Uint16(buff)), nil
-}
-func ReadShort(r io.Reader, bo binary.ByteOrder) (int, int64, error) {
-	length, value, err := ReadUShort(r, bo)
-	return length, int64(value), err
-}
-
-func ReadULong(r io.Reader, bo binary.ByteOrder) (int, uint64, error) {
-	buff := make([]byte, 4)
-	_, err := r.Read(buff)
-	if err != nil {
-		return 1, 0, err
+	switch typ.Clue_ {
+	case model.TYPE_CLUE_STRING:
+		v.StringValue = txt
+		return v, nil
+	case model.TYPE_CLUE_FLOAT:
+		var size int
+		switch typ.Root {
+		case "float":
+			size = 32
+		case "double":
+			size = 64
+		}
+		v.FloatValue, err = strconv.ParseFloat(txt, size)
+		return v, err
+	case model.TYPE_CLUE_INT:
+		if typ.Signed {
+			switch typ.Root {
+			case "byte":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 1)
+			case "short":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 2)
+			case "long":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 4)
+			case "quad":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 8)
+			default:
+				return nil, fmt.Errorf("unknown type: %s", typ.Root)
+			}
+			return v, err
+		} else {
+			switch typ.Root {
+			case "byte":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 1)
+			case "short":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 2)
+			case "long":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 4)
+			case "quad":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 8)
+			default:
+				return nil, fmt.Errorf("wrong type: %s", typ.Root)
+			}
+			return v, err
+		}
+	default:
+		return nil, fmt.Errorf("Unknown type: %v %v", typ.Clue_, typ.Name)
 	}
-	return 4, uint64(bo.Uint32(buff)), nil
 }
 
-func ReadLong(r io.Reader, bo binary.ByteOrder) (int, int64, error) {
-	length, value, err := ReadULong(r, bo)
-	return length, int64(value), err
-}
+func ReadToValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
+	var err error
+	bo := modelByteOrderToBinaryByteOrder(typ.Endianness)
 
-func ReadUQuad(r io.Reader, bo binary.ByteOrder) (int, uint64, error) {
-	buff := make([]byte, 8)
-	_, err := r.Read(buff)
-	if err != nil {
-		return 1, 0, err
+	v := &model.Value{}
+	switch typ.Clue_ {
+	/*
+		case model.TYPE_CLUE_STRING:
+			v.StringValue = string(buff)
+	*/
+	case model.TYPE_CLUE_FLOAT:
+		var size int
+		switch typ.Root {
+		case "float":
+			size = 4
+			var f float32
+			err = binary.Read(r, bo, &f)
+			v.FloatValue = float64(f)
+		case "double":
+			size = 8
+			err = binary.Read(r, bo, &v.FloatValue)
+		}
+		return v, size, err
+	case model.TYPE_CLUE_INT:
+		if typ.Signed {
+			switch typ.Root {
+			case "byte":
+				var b byte
+				err = binary.Read(r, bo, &b)
+				v.IntValue = int64(b)
+				return v, 1, err
+			case "short":
+				var s int16
+				err = binary.Read(r, bo, &s)
+				v.IntValue = int64(s)
+				return v, 2, err
+			case "long":
+				var l int32
+				err = binary.Read(r, bo, &l)
+				v.IntValue = int64(l)
+				return v, 4, err
+			case "quad":
+				var q int64
+				err = binary.Read(r, bo, &q)
+				v.IntValue = int64(q)
+				return v, 8, err
+			default:
+				return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
+			}
+		} else {
+			switch typ.Root {
+			case "byte":
+				var b byte
+				err = binary.Read(r, bo, &b)
+				v.UIntValue = uint64(b)
+				return v, 1, err
+			case "short":
+				var s uint16
+				err = binary.Read(r, bo, &s)
+				v.UIntValue = uint64(s)
+				return v, 2, err
+			case "long":
+				var l uint32
+				err = binary.Read(r, bo, &l)
+				v.UIntValue = uint64(l)
+				return v, 4, err
+			case "quad":
+				var q uint64
+				err = binary.Read(r, bo, &q)
+				v.UIntValue = uint64(q)
+				return v, 8, err
+			default:
+				return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
+			}
+		}
+	default:
+		return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
 	}
-	return 8, uint64(bo.Uint64(buff)), nil
-}
-
-func ReadQuad(r io.Reader, bo binary.ByteOrder) (int, int64, error) {
-	length, value, err := ReadUQuad(r, bo)
-	return length, int64(value), err
 }
