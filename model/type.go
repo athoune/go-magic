@@ -8,18 +8,22 @@ const (
 )
 
 type Clue int
+
 type Type struct {
-	Root     string // ubelong -> long
-	Name     string
-	Clue_    Clue
-	Operator byte
-	Arg      string
+	Root       string // ubelong -> long
+	Endianness BYTE_ORDER
+	ByteOrder  byte
+	Signed     bool
+	Name       string
+	Clue_      Clue
+	Operator   byte
+	Arg        *Value
 }
 
 var Types map[string]Clue
 
 func init() {
-	// FIXME Types should be map[string]Clue
+	// [FIXME] use type shortener
 	Types = map[string]Clue{
 		"byte":        TYPE_CLUE_INT,
 		"ubyte":       TYPE_CLUE_INT,

@@ -1,5 +1,8 @@
 package model
 
+/*
+File is the parsed representation of a libmagic file describing tests
+*/
 type File struct {
 	Name   string
 	Header string

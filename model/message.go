@@ -3,15 +3,11 @@ package model
 import "strings"
 
 type Message struct {
-	Value         string
-	IsTemplate    bool
-	IsDisplayable bool
+	Value      string
+	IsTemplate bool
 }
 
 func SetTemplateBooleans(msg *Message) {
-	msg.IsTemplate = strings.ContainsRune(msg.Value, '&')
-	if strings.HasPrefix(msg.Value, "\b") {
-		msg.IsDisplayable = true
-		msg.Value = msg.Value[2:]
-	}
+	msg.IsTemplate = strings.ContainsRune(msg.Value, '%')
+	msg.Value = strings.TrimPrefix(msg.Value, `\b`)
 }
