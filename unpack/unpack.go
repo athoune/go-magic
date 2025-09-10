@@ -43,13 +43,13 @@ func StringValue(typ *model.Type, txt string) (*model.Value, error) {
 		if typ.Signed {
 			switch typ.Root {
 			case "byte":
-				v.IntValue, err = strconv.ParseInt(txt, 0, 1)
-			case "short":
-				v.IntValue, err = strconv.ParseInt(txt, 0, 2)
-			case "long":
-				v.IntValue, err = strconv.ParseInt(txt, 0, 4)
-			case "quad":
 				v.IntValue, err = strconv.ParseInt(txt, 0, 8)
+			case "short":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 16)
+			case "long":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 32)
+			case "quad":
+				v.IntValue, err = strconv.ParseInt(txt, 0, 64)
 			default:
 				return nil, fmt.Errorf("unknown type: %s", typ.Root)
 			}
@@ -57,13 +57,13 @@ func StringValue(typ *model.Type, txt string) (*model.Value, error) {
 		} else {
 			switch typ.Root {
 			case "byte":
-				v.UIntValue, err = strconv.ParseUint(txt, 0, 1)
-			case "short":
-				v.UIntValue, err = strconv.ParseUint(txt, 0, 2)
-			case "long":
-				v.UIntValue, err = strconv.ParseUint(txt, 0, 4)
-			case "quad":
 				v.UIntValue, err = strconv.ParseUint(txt, 0, 8)
+			case "short":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 16)
+			case "long":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 32)
+			case "quad":
+				v.UIntValue, err = strconv.ParseUint(txt, 0, 64)
 			default:
 				return nil, fmt.Errorf("wrong type: %s", typ.Root)
 			}
