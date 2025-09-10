@@ -14,7 +14,7 @@ func modelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
 	case model.LITTLE_ENDIAN:
 		return binary.LittleEndian
 	case model.BIG_ENDIAN:
-		return binary.LittleEndian
+		return binary.BigEndian
 	default:
 		return binary.NativeEndian
 	}
