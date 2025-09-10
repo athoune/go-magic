@@ -65,6 +65,9 @@ func ParseFolder(path string) (model.Files, error) {
 	return files, nil
 }
 
+/*
+Parse reads r and compile tests described. Parsed tests are stored in 'file' argument.
+*/
 func Parse(r io.Reader, file *model.File) (int, error) {
 	scanner := bufio.NewScanner(r)
 	var slugs []string
@@ -99,13 +102,14 @@ func Parse(r io.Reader, file *model.File) (int, error) {
 			return n_line, err
 		}
 		if test.Type.Name == "name" {
-			file.Names[test.Compare.StringValue] = test
+			file.Names[test.Compare.RawExpected] = test
 		}
 		testsParsing.AppendTest(test)
 	}
 	file.Tests = testsParsing.Tests
 	return n_line, nil
 }
+
 func ParseOffset(offset *model.Offset, line string) error {
 	if line == "" {
 		return errors.New("empty value")
@@ -196,7 +200,7 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 	poz := 0
 	if type_.Name == "name" {
 		end := notSpace(line)
-		compare.StringValue = line[:end]
+		compare.RawExpected = line[:end]
 		return compare, end, nil
 	}
 	var err error
@@ -208,9 +212,9 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 	}
 
 	// Operation
-	compare.Operation = line[poz]
-	if !IsOperation(compare.Operation) {
-		compare.Operation = '='
+	compare.Comparator = line[poz]
+	if !IsOperation(compare.Comparator) {
+		compare.Comparator = '='
 	} else {
 		poz++
 	}
@@ -221,82 +225,43 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 
 	// Value
 	value := line[poz : poz+end]
-	switch type_.Clue_ {
-	case model.TYPE_CLUE_STRING:
-		compare.StringValue, err = HandleStringEscape(value)
+	if type_.Clue_ == model.TYPE_CLUE_STRING {
+		compare.RawExpected, err = HandleStringEscape(value)
 		if err != nil {
 			return nil, poz + end, err
 		}
-	case model.TYPE_CLUE_FLOAT:
-		compare.FloatValue, err = strconv.ParseFloat(value, 64)
-		if err != nil {
-			return nil, poz + end, fmt.Errorf("can't parse float: %v in [%v]", value, line)
-		}
-	case model.TYPE_CLUE_INT:
-		// In filesystems#1160 there is :
-		// 0	lelong		0x1b031336L	Netboot image,
-		// In mail.news#91
-		// >>15	ulelong		!0x00010000h	\b, version %#8.8
-		if len(value) > 1 {
-			for _, s := range []byte("hL") {
-				if value[len(value)-1] == byte(s) {
-					value = value[:len(value)-1]
-					break
-				}
-			}
-		}
-		compare.IntValue, err = strconv.ParseInt(value, 0, 64)
-		if err != nil {
-			return nil, poz + end, fmt.Errorf("can't parse int: %v in [%v]", value, line)
-		}
-	case model.TYPE_CLUE_QUAD:
-		if value == "0" {
-			compare.QuadValue = []int64{0}
-			return compare, poz + end, nil
-		}
-		if strings.HasPrefix(value, "0x") {
-			l := (len(value) - 2) / 8
-			v := make([]int64, l)
-			vv := value[2:]
-			for i := 0; i < l; i++ {
-				v[i], err = strconv.ParseInt(vv[i*8:(i+1)*8], 16, 64)
-				if err != nil {
-					return nil, 0, err
-				}
-			}
-			compare.QuadValue = v
-		} else {
-			v, err := strconv.ParseInt(value, 10, 64)
-			if err != nil {
-				return nil, poz + end, fmt.Errorf("can't parse int: %v in [%v]", value, line)
-			}
-			compare.QuadValue = []int64{v, 0}
-		}
-	default:
-		return nil, 0, fmt.Errorf("unknown clue: %v", type_)
+	} else {
+		compare.RawExpected = value
 	}
 	return compare, poz + end, nil
 }
 
 func ParseType(line string) (*model.Type, error) {
 	t := &model.Type{}
-	for _, o := range []byte("/%&+-^*|") {
+	var err error
+	var rawArg string
+	for _, o := range []byte("/%&+-^*|") { // FIXME
 		i := strings.IndexByte(line, o)
 		if i != -1 {
 			t.Name = line[:i]
-			t.Operator = o
-			t.Arg = line[i+1:]
+			t.FilterOperator = o
+			rawArg = line[i+1:]
 			break
 		}
 	}
 	if t.Name == "" {
 		t.Name = line
 	}
-	//t.Root = t.Name // FIXME handle strange prefix : u ube le…
+	t.Signed, t.ByteOrder, t.Root = model.ByteOrderAndSigned(t.Name)
 	var ok bool
-	t.Clue_, ok = model.Types[t.Name]
-	if !ok {
+	if t.Clue_, ok = model.Types[t.Name]; !ok {
 		return nil, fmt.Errorf("unknown type [%v]", t.Name)
+	}
+	if rawArg != "" {
+		t.FilterBinaryArgument, err = strconv.ParseUint(rawArg, 0, 64)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return t, nil

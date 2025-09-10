@@ -55,30 +55,46 @@ func TestParseCompare(t *testing.T) {
 		size    int
 		compare *model.Compare
 	}{
-		{"<10", &model.Type{Clue_: model.TYPE_CLUE_INT}, 3, &model.Compare{
-			Operation: COMPARE_LESS,
-			IntValue:  int64(10),
+		{"<10", &model.Type{
+			Clue_:  model.TYPE_CLUE_INT,
+			Root:   "long",
+			Signed: true,
+		}, 3, &model.Compare{
+			Comparator:  COMPARE_LESS,
+			RawExpected: "10",
 		}},
-		{"< 10", &model.Type{Clue_: model.TYPE_CLUE_INT}, 4, &model.Compare{
-			Operation: COMPARE_LESS,
-			IntValue:  int64(10),
+		{"< 10", &model.Type{
+			Clue_:  model.TYPE_CLUE_INT,
+			Root:   "long",
+			Signed: true,
+		}, 4, &model.Compare{
+			Comparator:  COMPARE_LESS,
+			RawExpected: "10",
 		}},
-		{"0x01000007", &model.Type{Clue_: model.TYPE_CLUE_INT}, 10, &model.Compare{
-			Operation: COMPARE_EQUAL,
-			IntValue:  int64(16777223),
+		{"0x01000007", &model.Type{
+			Clue_:  model.TYPE_CLUE_INT,
+			Root:   "long",
+			Signed: true,
+		}, 10, &model.Compare{
+			Comparator:  COMPARE_EQUAL,
+			RawExpected: "0x01000007",
 		}},
-		{"!>10", &model.Type{Clue_: model.TYPE_CLUE_INT}, 4, &model.Compare{
-			Operation: COMPARE_GREATER,
-			IntValue:  int64(10),
-			Not:       true,
+		{"!>10", &model.Type{
+			Clue_:  model.TYPE_CLUE_INT,
+			Root:   "long",
+			Signed: true,
+		}, 4, &model.Compare{
+			Comparator:  COMPARE_GREATER,
+			RawExpected: "10",
+			Not:         true,
 		}},
 		{"D6E229D3-35DA-11D1-9034-00A0C90349BE", &model.Type{Clue_: model.TYPE_CLUE_STRING}, 36, &model.Compare{
-			Operation:   COMPARE_EQUAL,
-			StringValue: "D6E229D3-35DA-11D1-9034-00A0C90349BE",
+			Comparator:  COMPARE_EQUAL,
+			RawExpected: "D6E229D3-35DA-11D1-9034-00A0C90349BE",
 		}},
 		{`Invalid\ partition\ table		english`, &model.Type{Clue_: model.TYPE_CLUE_STRING}, 25, &model.Compare{
-			Operation:   COMPARE_EQUAL,
-			StringValue: "Invalid partition table",
+			Comparator:  COMPARE_EQUAL,
+			RawExpected: "Invalid partition table",
 		}},
 	} {
 		c, s, err := ParseCompare(fixture.line, fixture.type_)
@@ -95,15 +111,15 @@ func TestParseCompareName(t *testing.T) {
 		Name: "name",
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, "jpeg", c.StringValue)
+	assert.Equal(t, "jpeg", c.RawExpected)
 }
 
 func TestParseType(t *testing.T) {
 	type_, err := ParseType(`belong&0xfe00f0f0`)
 	assert.NoError(t, err)
 	assert.Equal(t, "belong", type_.Name)
-	assert.Equal(t, byte('&'), type_.Operator)
-	assert.Equal(t, "0xfe00f0f0", type_.Arg)
+	assert.Equal(t, byte('&'), type_.FilterOperator)
+	assert.Equal(t, uint64(0xfe00f0f0), type_.FilterBinaryArgument)
 }
 
 func TestParse(t *testing.T) {
