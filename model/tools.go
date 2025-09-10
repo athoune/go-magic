@@ -3,18 +3,18 @@ package model
 import "strings"
 
 const (
-	LITTLE_ENDIAN = BYTE_ORDER(iota)
+	NATIVE_ENDIAN = BYTE_ORDER(iota)
 	BIG_ENDIAN
-	NATIVE_ENDIAN
+	LITTLE_ENDIAN
 )
 
 type BYTE_ORDER byte
 
 /*
-EndiannessSigned use name convention with txt input and
+ByteOrderAndSigned use name convention with txt input and
 return signed/unsigned, byte order, and root name
 */
-func EndiannessSigned(txt string) (bool, BYTE_ORDER, string) {
+func ByteOrderAndSigned(txt string) (bool, BYTE_ORDER, string) {
 	for _, n := range []string{"name", "use"} { // something like label/goto
 		if txt == n {
 			return true, NATIVE_ENDIAN, txt

@@ -2,7 +2,6 @@ package model
 
 const (
 	TYPE_CLUE_INT = Clue(iota)
-	TYPE_CLUE_QUAD
 	TYPE_CLUE_FLOAT
 	TYPE_CLUE_STRING
 )
@@ -10,14 +9,14 @@ const (
 type Clue int
 
 type Type struct {
-	Root       string // ubelong -> long
-	Endianness BYTE_ORDER
-	ByteOrder  byte
-	Signed     bool
-	Name       string
-	Clue_      Clue
-	Operator   byte
-	Arg        *Value
+	Root                 string // ubelong -> long
+	ByteOrder            BYTE_ORDER
+	Signed               bool
+	Name                 string
+	Clue_                Clue
+	FilterOperator       byte
+	FilterBinaryArgument uint64
+	FilterStringArgument string
 }
 
 var Types map[string]Clue
@@ -41,10 +40,10 @@ func init() {
 		"ulelong":     TYPE_CLUE_INT,
 		"lelong":      TYPE_CLUE_INT,
 		"u8":          TYPE_CLUE_INT,
-		"quad":        TYPE_CLUE_QUAD,
-		"ubequad":     TYPE_CLUE_QUAD,
-		"uquad":       TYPE_CLUE_QUAD,
-		"ulequad":     TYPE_CLUE_QUAD,
+		"quad":        TYPE_CLUE_INT,
+		"ubequad":     TYPE_CLUE_INT,
+		"uquad":       TYPE_CLUE_INT,
+		"ulequad":     TYPE_CLUE_INT,
 		"float":       TYPE_CLUE_FLOAT,
 		"double":      TYPE_CLUE_FLOAT,
 		"string":      TYPE_CLUE_STRING,
@@ -60,7 +59,7 @@ func init() {
 		"ubeqdate":    TYPE_CLUE_STRING,
 		"lemsdostime": TYPE_CLUE_STRING,
 		"beid3":       TYPE_CLUE_STRING,
-		"bequad":      TYPE_CLUE_QUAD,
+		"bequad":      TYPE_CLUE_INT,
 		"befloat":     TYPE_CLUE_FLOAT,
 		"bedouble":    TYPE_CLUE_FLOAT,
 		"bedate":      TYPE_CLUE_STRING,
@@ -70,7 +69,7 @@ func init() {
 		"beqwdate":    TYPE_CLUE_STRING,
 		"bestring16":  TYPE_CLUE_STRING,
 		"leid3":       TYPE_CLUE_STRING,
-		"lequad":      TYPE_CLUE_QUAD,
+		"lequad":      TYPE_CLUE_INT,
 		"lefloat":     TYPE_CLUE_FLOAT,
 		"ledouble":    TYPE_CLUE_FLOAT,
 		"ledate":      TYPE_CLUE_STRING,
