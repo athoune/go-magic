@@ -9,7 +9,7 @@ import (
 	"github.com/athoune/go-magic/model"
 )
 
-func modelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
+func ModelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
 	switch bo {
 	case model.LITTLE_ENDIAN:
 		return binary.LittleEndian
