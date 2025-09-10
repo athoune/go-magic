@@ -76,7 +76,7 @@ func StringValue(typ *model.Type, txt string) (*model.Value, error) {
 
 func ReadToValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 	var err error
-	bo := modelByteOrderToBinaryByteOrder(typ.Endianness)
+	bo := ModelByteOrderToBinaryByteOrder(typ.ByteOrder)
 
 	v := &model.Value{}
 	switch typ.Clue_ {
