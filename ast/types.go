@@ -41,7 +41,7 @@ func ReadPstring(r io.Reader, options string) (string, error) {
 			bo = binary.LittleEndian
 		}
 		var l uint16
-		err := binary.Read(io.LimitReader(r, int64(lengthLength)), bo, &l)
+		err := binary.Read(r, bo, &l)
 		if err != nil {
 			return "", err
 		}
