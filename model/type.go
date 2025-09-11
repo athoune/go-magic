@@ -17,6 +17,17 @@ type Type struct {
 	FilterOperator       byte
 	FilterBinaryArgument uint64
 	FilterStringArgument string
+	StringOptions        *StringOptions
+}
+
+type StringOptions struct {
+	CompactWhiteSpaces   bool
+	FullWord             bool
+	CaseInsensitiveUpper bool
+	CaseInsensitiveLower bool
+	TextFile             bool
+	BinaryFile           bool
+	Trimmed              bool
 }
 
 var Types map[string]Clue

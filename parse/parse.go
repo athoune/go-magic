@@ -233,22 +233,27 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 	} else {
 		compare.RawExpected = value
 	}
+	//
 	return compare, poz + end, nil
+}
+
+func parseOptions(typ *model.Type, line string) {
+	for _, o := range []byte("/%&+-^*|") {
+		i := strings.IndexByte(line, o)
+		if i != -1 {
+			typ.Name = line[:i]
+			typ.FilterOperator = o
+			typ.FilterStringArgument = line[i+1:]
+			break
+		}
+	}
 }
 
 func ParseType(line string) (*model.Type, error) {
 	t := &model.Type{}
 	var err error
-	var rawArg string
-	for _, o := range []byte("/%&+-^*|") { // FIXME
-		i := strings.IndexByte(line, o)
-		if i != -1 {
-			t.Name = line[:i]
-			t.FilterOperator = o
-			rawArg = line[i+1:]
-			break
-		}
-	}
+
+	parseOptions(t, line)
 	if t.Name == "" {
 		t.Name = line
 	}
@@ -265,4 +270,30 @@ func ParseType(line string) (*model.Type, error) {
 	}
 
 	return t, nil
+}
+
+func parseStringOptions(typ *model.Type) error {
+	typ.StringOptions = &model.StringOptions{}
+	for _, option := range typ.FilterStringArgument {
+		// WwcCtbTf
+		switch option {
+		default:
+			return fmt.Errorf("unknown String options: %v", option)
+		case 'W':
+			typ.StringOptions.CompactWhiteSpaces = true
+		case 'f':
+			typ.StringOptions.FullWord = true
+		case 'c':
+			typ.StringOptions.CaseInsensitiveLower = true
+		case 'C':
+			typ.StringOptions.CaseInsensitiveUpper = true
+		case 't':
+			typ.StringOptions.TextFile = true
+		case 'b':
+			typ.StringOptions.BinaryFile = true
+		case 'T':
+			typ.StringOptions.Trimmed = true
+		}
+	}
+	return nil
 }

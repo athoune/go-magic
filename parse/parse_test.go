@@ -168,3 +168,14 @@ func TestRead(t *testing.T) {
 		fmt.Println(test)
 	}
 }
+
+func TestParseStringOptions(t *testing.T) {
+	typ := &model.Type{}
+	parseOptions(typ, "bob/cC")
+	assert.Nil(t, typ.StringOptions)
+	err := parseStringOptions(typ)
+	assert.NoError(t, err)
+	assert.NotNil(t, typ.StringOptions)
+	assert.True(t, typ.StringOptions.CaseInsensitiveLower)
+	assert.True(t, typ.StringOptions.CaseInsensitiveUpper)
+}
