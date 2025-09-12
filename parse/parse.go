@@ -292,26 +292,26 @@ func ParseType(line string) (*model.Type, error) {
 }
 
 func parseStringOptions(typ *model.Type) error {
-	typ.StringOptions = &model.StringOptions{}
+	typ.StringOptions = 0
 	for _, option := range typ.FilterStringArgument {
 		// WwcCtbTf
 		switch option {
 		default:
 			return fmt.Errorf("unknown String options: %v", option)
 		case 'W':
-			typ.StringOptions.CompactWhiteSpaces = true
+			typ.StringOptions += model.STRING_OPTIONS_COMPACT_WITH_SPACES
 		case 'f':
-			typ.StringOptions.FullWord = true
+			typ.StringOptions += model.STRING_OPTIONS_FULL_WORD
 		case 'c':
-			typ.StringOptions.CaseInsensitiveLower = true
+			typ.StringOptions += model.STRING_OPTIONS_CASE_INSENSTIVE_LOWER
 		case 'C':
-			typ.StringOptions.CaseInsensitiveUpper = true
+			typ.StringOptions += model.STRING_OPTIONS_CASE_INSENSTIVE_UPPER
 		case 't':
-			typ.StringOptions.TextFile = true
+			typ.StringOptions += model.STRING_OPTIONS_TEXT_FILE
 		case 'b':
-			typ.StringOptions.BinaryFile = true
+			typ.StringOptions += model.STRING_OPTIONS_BINARY_FILE
 		case 'T':
-			typ.StringOptions.Trimmed = true
+			typ.StringOptions += model.STRING_OPTIONS_TRIMMED
 		}
 	}
 	return nil

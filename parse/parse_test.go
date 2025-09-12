@@ -188,10 +188,12 @@ func TestRead(t *testing.T) {
 func TestParseStringOptions(t *testing.T) {
 	typ := &model.Type{}
 	parseOptions(typ, "bob/cC")
-	assert.Nil(t, typ.StringOptions)
+	assert.Equal(t, model.STRING_OPTIONS_NONE, typ.StringOptions)
 	err := parseStringOptions(typ)
 	assert.NoError(t, err)
 	assert.NotNil(t, typ.StringOptions)
-	assert.True(t, typ.StringOptions.CaseInsensitiveLower)
-	assert.True(t, typ.StringOptions.CaseInsensitiveUpper)
+	assert.Equal(t, model.STRING_OPTIONS_CASE_INSENSTIVE_LOWER,
+		typ.StringOptions&model.STRING_OPTIONS_CASE_INSENSTIVE_LOWER)
+	assert.Equal(t, model.STRING_OPTIONS_CASE_INSENSTIVE_UPPER,
+		typ.StringOptions&model.STRING_OPTIONS_CASE_INSENSTIVE_UPPER)
 }

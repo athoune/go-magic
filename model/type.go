@@ -7,6 +7,18 @@ const (
 )
 
 type Clue int
+type StringOptions uint8
+
+const (
+	STRING_OPTIONS_NONE                  = StringOptions(0b0)
+	STRING_OPTIONS_COMPACT_WITH_SPACES   = StringOptions(0b1)
+	STRING_OPTIONS_FULL_WORD             = StringOptions(0b10)
+	STRING_OPTIONS_CASE_INSENSTIVE_UPPER = StringOptions(0b100)
+	STRING_OPTIONS_CASE_INSENSTIVE_LOWER = StringOptions(0b1000)
+	STRING_OPTIONS_TEXT_FILE             = StringOptions(0b10000)
+	STRING_OPTIONS_BINARY_FILE           = StringOptions(0b100000)
+	STRING_OPTIONS_TRIMMED               = StringOptions(0b1000000)
+)
 
 type Type struct {
 	Root                 string // ubelong -> long
@@ -17,17 +29,7 @@ type Type struct {
 	FilterOperator       byte
 	FilterBinaryArgument uint64
 	FilterStringArgument string
-	StringOptions        *StringOptions
-}
-
-type StringOptions struct {
-	CompactWhiteSpaces   bool
-	FullWord             bool
-	CaseInsensitiveUpper bool
-	CaseInsensitiveLower bool
-	TextFile             bool
-	BinaryFile           bool
-	Trimmed              bool
+	StringOptions        StringOptions
 }
 
 var Types map[string]Clue
