@@ -88,13 +88,22 @@ func TestParseCompare(t *testing.T) {
 			RawExpected: "10",
 			Not:         true,
 		}},
-		{"D6E229D3-35DA-11D1-9034-00A0C90349BE", &model.Type{Clue_: model.TYPE_CLUE_STRING}, 36, &model.Compare{
+		{"D6E229D3-35DA-11D1-9034-00A0C90349BE", &model.Type{
+			Clue_: model.TYPE_CLUE_STRING}, 36, &model.Compare{
 			Comparator:  COMPARE_EQUAL,
 			RawExpected: "D6E229D3-35DA-11D1-9034-00A0C90349BE",
 		}},
-		{`Invalid\ partition\ table		english`, &model.Type{Clue_: model.TYPE_CLUE_STRING}, 25, &model.Compare{
+		{`Invalid\ partition\ table		english`, &model.Type{
+			Clue_: model.TYPE_CLUE_STRING}, 25, &model.Compare{
 			Comparator:  COMPARE_EQUAL,
 			RawExpected: "Invalid partition table",
+		}},
+		{`\x6d\x6a\x70\x32`, &model.Type{
+			Clue_: model.TYPE_CLUE_STRING,
+			Root:  "string",
+		}, 16, &model.Compare{
+			Comparator:  COMPARE_EQUAL,
+			RawExpected: "mjp2",
 		}},
 	} {
 		c, s, err := ParseCompare(fixture.line, fixture.type_)
