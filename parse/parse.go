@@ -262,8 +262,24 @@ func ParseType(line string) (*model.Type, error) {
 	if t.Clue_, ok = model.Types[t.Name]; !ok {
 		return nil, fmt.Errorf("unknown type [%v]", t.Name)
 	}
-	if rawArg != "" {
-		t.FilterBinaryArgument, err = strconv.ParseUint(rawArg, 0, 64)
+	switch t.Root {
+	case "indirect":
+	/*
+		indirect        Starting at the given offset, consult the magic database again.  The offset of the indirect magic is by default absolute in the file, but one can specify /r to indicate that the offset is relative from the
+		                beginning of the entry.
+	*/
+	case "pstring":
+		/*
+			boring, the options are handled in the ast
+		*/
+	case "string":
+		/*
+			The string type specification can be optionally followed by /[WwcCtbTf]*.
+		*/
+		parseStringOptions(t)
+	case "search":
+	default:
+		t.FilterBinaryArgument, err = strconv.ParseUint(t.FilterStringArgument, 0, 64)
 		if err != nil {
 			return nil, err
 		}

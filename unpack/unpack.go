@@ -51,7 +51,7 @@ func StringValue(typ *model.Type, txt string) (*model.Value, error) {
 			case "quad":
 				v.IntValue, err = strconv.ParseInt(txt, 0, 64)
 			default:
-				return nil, fmt.Errorf("unknown type: %s", typ.Root)
+				return nil, fmt.Errorf("unknown type for an integer : %s", typ.Root)
 			}
 			return v, err
 		} else {
@@ -65,12 +65,12 @@ func StringValue(typ *model.Type, txt string) (*model.Value, error) {
 			case "quad":
 				v.UIntValue, err = strconv.ParseUint(txt, 0, 64)
 			default:
-				return nil, fmt.Errorf("wrong type: %s", typ.Root)
+				return nil, fmt.Errorf("unknown type for an unsigned integer : %s", typ.Root)
 			}
 			return v, err
 		}
 	default:
-		return nil, fmt.Errorf("Unknown type: %v %v", typ.Clue_, typ.Name)
+		return nil, fmt.Errorf("unknown type: %v %v", typ.Clue_, typ.Name)
 	}
 }
 
