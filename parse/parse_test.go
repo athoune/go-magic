@@ -120,6 +120,13 @@ func TestParseType(t *testing.T) {
 	assert.Equal(t, "belong", type_.Name)
 	assert.Equal(t, byte('&'), type_.FilterOperator)
 	assert.Equal(t, uint64(0xfe00f0f0), type_.FilterBinaryArgument)
+
+	type_, err = ParseType(`pstring/HJ`)
+	assert.NoError(t, err)
+	assert.Equal(t, "pstring", type_.Root)
+	assert.Equal(t, "pstring", type_.Name)
+	assert.Equal(t, byte('/'), type_.FilterOperator)
+	assert.Equal(t, "HJ", type_.FilterStringArgument)
 }
 
 func TestParse(t *testing.T) {

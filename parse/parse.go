@@ -278,10 +278,13 @@ func ParseType(line string) (*model.Type, error) {
 		*/
 		parseStringOptions(t)
 	case "search":
+	case "regex":
 	default:
-		t.FilterBinaryArgument, err = strconv.ParseUint(t.FilterStringArgument, 0, 64)
-		if err != nil {
-			return nil, err
+		if t.FilterOperator != 0 {
+			t.FilterBinaryArgument, err = strconv.ParseUint(t.FilterStringArgument, 0, 64)
+			if err != nil {
+				return nil, fmt.Errorf("%s with line : %s", err.Error(), line)
+			}
 		}
 	}
 
