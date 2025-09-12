@@ -23,6 +23,7 @@ func TestParseLine(t *testing.T) {
 				Signed:               true,
 				ByteOrder:            model.BIG_ENDIAN,
 				FilterBinaryArgument: 0xfe00f0f0,
+				FilterStringArgument: "0xfe00f0f0",
 			},
 		}},
 		{`0	lelong		0xc3cbc6c5	RISC OS Chunk data`, &model.Compare{
@@ -105,6 +106,7 @@ func TestParseLine(t *testing.T) {
 				Clue_:                model.TYPE_CLUE_STRING,
 				FilterOperator:       '/',
 				FilterBinaryArgument: 8192,
+				FilterStringArgument: "8192",
 			},
 		}},
 		{`>>>>>>&8	ubelong%44100	0`, &model.Compare{
@@ -118,6 +120,7 @@ func TestParseLine(t *testing.T) {
 				Clue_:                model.TYPE_CLUE_INT,
 				FilterOperator:       '%',
 				FilterBinaryArgument: 44100,
+				FilterStringArgument: "44100",
 			},
 		}},
 		{`>8		ubyte/4		=0		CHN: 4`, &model.Compare{
@@ -130,6 +133,7 @@ func TestParseLine(t *testing.T) {
 				Clue_:                model.TYPE_CLUE_INT,
 				FilterOperator:       '/',
 				FilterBinaryArgument: 4,
+				FilterStringArgument: "4",
 			},
 		}},
 		{`>>&(0x04)	lelong	>0	\b, with %d reference sequences`, &model.Compare{
@@ -191,6 +195,7 @@ func TestParseLine(t *testing.T) {
 				Clue_:                model.TYPE_CLUE_INT,
 				FilterOperator:       '+',
 				FilterBinaryArgument: 1,
+				FilterStringArgument: "1",
 			},
 		}},
 		{`0	belong&0xffffe000	0x76ff2000 CDC Codec archive data`, &model.Compare{
@@ -204,6 +209,7 @@ func TestParseLine(t *testing.T) {
 				Clue_:                model.TYPE_CLUE_INT,
 				FilterOperator:       '&',
 				FilterBinaryArgument: 0xffffe000,
+				FilterStringArgument: "0xffffe000",
 			},
 		}},
 		{`>2	string	\x2\x4	Xpack DiskImage archive data`, &model.Compare{
@@ -235,6 +241,7 @@ func TestParseLine(t *testing.T) {
 				Clue_:                model.TYPE_CLUE_INT,
 				FilterOperator:       '^',
 				FilterBinaryArgument: 0x65,
+				FilterStringArgument: "0x65",
 			},
 		}},
 		{`0	lelong		0x1b031336L	Netboot image,`, &model.Compare{

@@ -277,9 +277,8 @@ func ParseType(line string) (*model.Type, error) {
 			The string type specification can be optionally followed by /[WwcCtbTf]*.
 		*/
 		parseStringOptions(t)
-	case "search":
 	case "regex":
-	default:
+	default: // all integers, search
 		if t.FilterOperator != 0 {
 			t.FilterBinaryArgument, err = strconv.ParseUint(t.FilterStringArgument, 0, 64)
 			if err != nil {
