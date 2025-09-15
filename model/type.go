@@ -7,29 +7,35 @@ const (
 )
 
 type Clue int
-type StringOptions uint8
+type StringOptions uint16
 
 const (
-	STRING_OPTIONS_NONE                  = StringOptions(0b0)
-	STRING_OPTIONS_COMPACT_WITH_SPACES   = StringOptions(0b1)
-	STRING_OPTIONS_FULL_WORD             = StringOptions(0b10)
-	STRING_OPTIONS_CASE_INSENSTIVE_UPPER = StringOptions(0b100)
-	STRING_OPTIONS_CASE_INSENSTIVE_LOWER = StringOptions(0b1000)
-	STRING_OPTIONS_TEXT_FILE             = StringOptions(0b10000)
-	STRING_OPTIONS_BINARY_FILE           = StringOptions(0b100000)
-	STRING_OPTIONS_TRIMMED               = StringOptions(0b1000000)
+	STRING_OPTIONS_NONE                   = StringOptions(0b0)
+	STRING_OPTIONS_COMPACT_WITH_SPACES    = StringOptions(0b1 << 1)
+	STRING_OPTIONS_FULL_WORD              = StringOptions(0b1 << 2)
+	STRING_OPTIONS_CASE_INSENSITIVE_UPPER = StringOptions(0b1 << 3)
+	STRING_OPTIONS_CASE_INSENSITIVE_LOWER = StringOptions(0b1 << 4)
+	STRING_OPTIONS_TEXT_FILE              = StringOptions(0b1 << 5)
+	STRING_OPTIONS_BINARY_FILE            = StringOptions(0b1 << 6)
+	STRING_OPTIONS_TRIMMED                = StringOptions(0b1 << 7)
+	REGEX_OPTIONS_OFFSET_START            = StringOptions(0b1 << 8)
 )
 
 type Type struct {
-	Root                 string // ubelong -> long
-	ByteOrder            BYTE_ORDER
-	Signed               bool
-	Name                 string
-	Clue_                Clue
+	Root      string // ubelong -> long
+	ByteOrder BYTE_ORDER
+	Signed    bool
+	Name      string
+	Clue_     Clue
+	// Filter
 	FilterOperator       byte
 	FilterBinaryArgument uint64
 	FilterStringArgument string
-	StringOptions        StringOptions
+	// when root == "string" or "search"
+	StringOptions StringOptions
+	// when root == "search"
+	SearchRange int
+	SearchCount int
 }
 
 var Types map[string]Clue

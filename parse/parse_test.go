@@ -189,11 +189,32 @@ func TestParseStringOptions(t *testing.T) {
 	typ := &model.Type{}
 	parseOptions(typ, "bob/cC")
 	assert.Equal(t, model.STRING_OPTIONS_NONE, typ.StringOptions)
-	err := parseStringOptions(typ)
+	stringOptions, err := parseStringOptions(typ.FilterStringArgument)
 	assert.NoError(t, err)
-	assert.NotNil(t, typ.StringOptions)
-	assert.Equal(t, model.STRING_OPTIONS_CASE_INSENSTIVE_LOWER,
-		typ.StringOptions&model.STRING_OPTIONS_CASE_INSENSTIVE_LOWER)
-	assert.Equal(t, model.STRING_OPTIONS_CASE_INSENSTIVE_UPPER,
-		typ.StringOptions&model.STRING_OPTIONS_CASE_INSENSTIVE_UPPER)
+	assert.Equal(t, model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER,
+		stringOptions&model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER)
+	assert.Equal(t, model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER,
+		stringOptions&model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER)
+}
+
+func TestParseSearchOptions(t *testing.T) {
+	for _, fixture := range []struct {
+		line          string
+		searchRange   int
+		stringOptions model.StringOptions
+	}{
+		{"search/1/t", 1, model.STRING_OPTIONS_TEXT_FILE},
+		{"search/42/cC", 42,
+			model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER |
+				model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER},
+		{"search/727", 727, model.STRING_OPTIONS_NONE},
+		{"search/210965/s", 210965, model.REGEX_OPTIONS_OFFSET_START},
+	} {
+		typ := &model.Type{}
+		parseOptions(typ, fixture.line)
+		searchRange, stringOptions, err := parseSearchOptions(typ.FilterStringArgument)
+		assert.NoError(t, err)
+		assert.Equal(t, fixture.searchRange, searchRange)
+		assert.Equal(t, fixture.stringOptions, stringOptions)
+	}
 }

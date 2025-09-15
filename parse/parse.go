@@ -2,6 +2,7 @@ package parse
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/athoune/go-magic/model"
 )
@@ -276,9 +278,17 @@ func ParseType(line string) (*model.Type, error) {
 		/*
 			The string type specification can be optionally followed by /[WwcCtbTf]*.
 		*/
-		parseStringOptions(t)
+		t.StringOptions, err = parseStringOptions(t.FilterStringArgument)
+		if err != nil {
+			return nil, err
+		}
 	case "regex":
-	default: // all integers, search
+	case "search":
+		t.SearchRange, t.StringOptions, err = parseSearchOptions(t.FilterStringArgument)
+		if err != nil {
+			return nil, err
+		}
+	default: // all integers
 		if t.FilterOperator != 0 {
 			t.FilterBinaryArgument, err = strconv.ParseUint(t.FilterStringArgument, 0, 64)
 			if err != nil {
@@ -290,28 +300,73 @@ func ParseType(line string) (*model.Type, error) {
 	return t, nil
 }
 
-func parseStringOptions(typ *model.Type) error {
-	typ.StringOptions = 0
-	for _, option := range typ.FilterStringArgument {
+func parseStringOptions(stringOptionsRaw string) (model.StringOptions, error) {
+	stringOptions := model.STRING_OPTIONS_NONE
+	for _, option := range stringOptionsRaw {
 		// WwcCtbTf
 		switch option {
 		default:
-			return fmt.Errorf("unknown String options: %v", option)
+			return 0, fmt.Errorf("unknown String options: %v", option)
 		case 'W':
-			typ.StringOptions += model.STRING_OPTIONS_COMPACT_WITH_SPACES
+			stringOptions |= model.STRING_OPTIONS_COMPACT_WITH_SPACES
 		case 'f':
-			typ.StringOptions += model.STRING_OPTIONS_FULL_WORD
+			stringOptions |= model.STRING_OPTIONS_FULL_WORD
 		case 'c':
-			typ.StringOptions += model.STRING_OPTIONS_CASE_INSENSTIVE_LOWER
+			stringOptions |= model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER
 		case 'C':
-			typ.StringOptions += model.STRING_OPTIONS_CASE_INSENSTIVE_UPPER
+			stringOptions |= model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER
 		case 't':
-			typ.StringOptions += model.STRING_OPTIONS_TEXT_FILE
+			stringOptions |= model.STRING_OPTIONS_TEXT_FILE
 		case 'b':
-			typ.StringOptions += model.STRING_OPTIONS_BINARY_FILE
+			stringOptions |= model.STRING_OPTIONS_BINARY_FILE
 		case 'T':
-			typ.StringOptions += model.STRING_OPTIONS_TRIMMED
+			stringOptions |= model.STRING_OPTIONS_TRIMMED
+		case '4':
+			/*
+				0	string/4	MOC3	Live2D Cubism MOC3
+				[FIXME] What does it means ? Just read 4 characters ?
+				No info in the man, nor the NBF file
+			*/
+		case 's': // yes, it happens in the MagDir
+			stringOptions |= model.REGEX_OPTIONS_OFFSET_START
 		}
 	}
-	return nil
+	return stringOptions, nil
+}
+
+func parseSearchOptions(args string) (int, model.StringOptions, error) {
+	s := strings.IndexRune(args, '/')
+	if s == 0 {
+		return 0, model.STRING_OPTIONS_NONE,
+			fmt.Errorf("search options parsing error, can't start with a '/', 'range' is mandatory : %s", args)
+	}
+	if s == -1 { // no string options
+		r, err := strconv.ParseInt(args, 0, 64)
+		if err != nil {
+			return 0, model.STRING_OPTIONS_NONE, err
+		}
+		return int(r), model.STRING_OPTIONS_NONE, err
+	} // string options
+	nums := new(bytes.Buffer)
+	opts := new(bytes.Buffer)
+	for _, l := range args[s+1:] {
+		if unicode.IsNumber(l) {
+			nums.WriteRune(l)
+			// numbers should be consecutive, but YOLO
+		} else {
+			opts.WriteRune(l)
+		}
+	}
+	if nums.Len() > 0 {
+		strconv.ParseInt(nums.String(), 0, 64)
+	}
+	so, err := parseStringOptions(opts.String())
+	if err != nil {
+		return 0, model.STRING_OPTIONS_NONE, err
+	}
+	r, err := strconv.ParseInt(args[:s], 0, 64)
+	if err != nil {
+		return 0, model.STRING_OPTIONS_NONE, err
+	}
+	return int(r), so, nil
 }
