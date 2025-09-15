@@ -334,6 +334,7 @@ func parseStringOptions(stringOptionsRaw string) (model.StringOptions, error) {
 	return stringOptions, nil
 }
 
+// parseSearchOptions returns 'range' and 'options' (aka 'string options')
 func parseSearchOptions(args string) (int, model.StringOptions, error) {
 	s := strings.IndexRune(args, '/')
 	if s == 0 {

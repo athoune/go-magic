@@ -209,6 +209,7 @@ func TestParseSearchOptions(t *testing.T) {
 				model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER},
 		{"search/727", 727, model.STRING_OPTIONS_NONE},
 		{"search/210965/s", 210965, model.REGEX_OPTIONS_OFFSET_START},
+		{"search/8192", 8192, model.STRING_OPTIONS_NONE},
 	} {
 		typ := &model.Type{}
 		parseOptions(typ, fixture.line)

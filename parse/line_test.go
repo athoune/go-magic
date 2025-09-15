@@ -105,8 +105,8 @@ func TestParseLine(t *testing.T) {
 				Signed:               true,
 				Clue_:                model.TYPE_CLUE_STRING,
 				FilterOperator:       '/',
-				FilterBinaryArgument: 8192,
 				FilterStringArgument: "8192",
+				SearchRange:          8192,
 			},
 		}},
 		{`>>>>>>&8	ubelong%44100	0`, &model.Compare{
