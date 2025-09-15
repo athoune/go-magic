@@ -27,7 +27,7 @@ func ModelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
 	}
 }
 
-func StringValue(typ *model.Type, txt string) (*model.Value, error) {
+func BuildValueFromString(typ *model.Type, txt string) (*model.Value, error) {
 	var err error
 	v := &model.Value{
 		Clue: typ.Clue_,

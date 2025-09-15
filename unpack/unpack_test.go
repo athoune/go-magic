@@ -111,11 +111,11 @@ func TestStringValue(t *testing.T) {
 		Clue_:  model.TYPE_CLUE_INT,
 		Signed: true,
 	}
-	v, err := StringValue(typ, "42")
+	v, err := BuildValueFromString(typ, "42")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(42), v.IntValue)
 
-	v, err = StringValue(typ, "0xF")
+	v, err = BuildValueFromString(typ, "0xF")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(15), v.IntValue)
 }
