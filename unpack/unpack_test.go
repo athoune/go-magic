@@ -3,76 +3,90 @@ package unpack
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"testing"
 
 	"github.com/athoune/go-magic/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestModelByteOrderToBinaryByteOrder(t *testing.T) {
-	assert.Equal(t, binary.LittleEndian, ModelByteOrderToBinaryByteOrder(model.LITTLE_ENDIAN))
-	assert.Equal(t, binary.BigEndian, ModelByteOrderToBinaryByteOrder(model.BIG_ENDIAN))
-	assert.Equal(t, binary.NativeEndian, ModelByteOrderToBinaryByteOrder(model.NATIVE_ENDIAN))
-}
-
 func TestUnpackSignedByte(t *testing.T) {
 	typ := &model.Type{
 		Signed: true,
 		Root:   "byte",
 	}
-	v, l, err := ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3}))
+	v, l, err := ReadValue(typ, bytes.NewReader([]byte{12, 14, 3}))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, l)
 	assert.Equal(t, int64(12), v.IntValue)
 }
-func TestUnpackSignedShort(t *testing.T) {
-	typ := &model.Type{
-		ByteOrder: model.LITTLE_ENDIAN,
-		Root:      "short",
-		Signed:    true,
-	}
-	v, l, err := ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3}))
-	assert.NoError(t, err)
-	assert.Equal(t, 2, l)
-	assert.Equal(t, int64(12+14*256), v.IntValue)
-
-	typ.ByteOrder = model.BIG_ENDIAN
-
-	v, l, err = ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3}))
-	assert.NoError(t, err)
-	assert.Equal(t, 2, l)
-	assert.Equal(t, int64(12+14*256), v.IntValue)
-}
-
-func TestUnpackSignedLong(t *testing.T) {
-	typ := &model.Type{
-		Root:      "long",
-		ByteOrder: model.LITTLE_ENDIAN,
-		Signed:    true,
-	}
-	v, l, err := ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3, 27, 53, 254}))
-	assert.NoError(t, err)
-	assert.Equal(t, 4, l)
-	assert.Equal(t, int64(12+14*256+3*256*256+27*256*256*256), v.IntValue)
-
-	typ.ByteOrder = model.BIG_ENDIAN
-	v, l, err = ReadToValue(typ, bytes.NewReader([]byte{12, 14, 3, 27, 53, 254}))
-	assert.NoError(t, err)
-	assert.Equal(t, 4, l)
-	assert.Equal(t, int64(27*256*256*256+3*256*256+14*256+12), v.IntValue)
-}
-
-func TestUnpackSignedQuad(t *testing.T) {
-	typ := &model.Type{
-		ByteOrder: model.LITTLE_ENDIAN,
-		Root:      "quad",
-		Signed:    true,
-	}
+func TestUnpackSigned(t *testing.T) {
 	vv := []byte{12, 14, 3, 27, 53, 254, 7, 9, 27, 128}
-	v, l, err := ReadToValue(typ, bytes.NewReader(vv))
-	assert.NoError(t, err)
-	assert.Equal(t, 8, l)
-	assert.Equal(t, bin2int(vv, ModelByteOrderToBinaryByteOrder(typ.ByteOrder)), v.IntValue)
+	for i, fixture := range []struct {
+		endianness model.BYTE_ORDER
+		expected   int64
+		root       string
+		data       []byte
+		size       int
+	}{
+		// Short
+		{
+			endianness: model.LITTLE_ENDIAN,
+			expected:   int64(12 + 14*256),
+			root:       "short",
+			data:       []byte{12, 14, 3},
+			size:       2,
+		},
+		{
+			endianness: model.BIG_ENDIAN,
+			expected:   int64(14 + 12*256),
+			root:       "short",
+			data:       []byte{12, 14, 3},
+			size:       2,
+		},
+		// long
+		{
+			endianness: model.LITTLE_ENDIAN,
+			root:       "long",
+			data:       []byte{12, 14, 3, 27, 53, 254},
+			expected:   int64(12 + 14*256 + 3*256*256 + 27*256*256*256),
+			size:       4,
+		},
+		{
+			endianness: model.BIG_ENDIAN,
+			root:       "long",
+			data:       []byte{12, 14, 3, 27, 53, 27},
+			expected:   int64(12*256*256*256 + 14*256*256 + 3*256 + 27),
+			size:       4,
+		},
+		// quad
+		{
+			endianness: model.LITTLE_ENDIAN,
+			root:       "quad",
+			data:       vv,
+			expected:   bin2int(vv[:8], binary.LittleEndian),
+			size:       8,
+		},
+		{
+			endianness: model.BIG_ENDIAN,
+			root:       "quad",
+			data:       vv,
+			expected:   bin2int(vv[:8], binary.BigEndian),
+			size:       8,
+		},
+	} {
+		typ := &model.Type{
+			ByteOrder: fixture.endianness,
+			Root:      fixture.root,
+			Signed:    true,
+		}
+		v, l, err := ReadValue(typ, bytes.NewReader(fixture.data))
+		assert.NoError(t, err)
+		assert.Equal(t, fixture.size, l)
+		fmt.Println(i, v.IntValue)
+		assert.Equal(t, fixture.expected, v.IntValue, "#%v : %v %v => %v",
+			i, fixture.endianness, fixture.data, fixture.expected)
+	}
 }
 
 func bin2int(bytes_ []byte, bo binary.ByteOrder) int64 {
