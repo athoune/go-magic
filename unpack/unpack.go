@@ -31,9 +31,9 @@ func ModelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
 func BuildValueFromString(typ *model.Type, txt string) (*model.Value, error) {
 	var err error
 	v := &model.Value{
-		Clue: typ.Clue_,
+		Clue: typ.Clue,
 	}
-	switch typ.Clue_ {
+	switch typ.Clue {
 	case model.TYPE_CLUE_STRING:
 		v.StringValue = txt
 		return v, nil
@@ -78,7 +78,7 @@ func BuildValueFromString(typ *model.Type, txt string) (*model.Value, error) {
 			return v, err
 		}
 	default:
-		return nil, fmt.Errorf("unknown type: %v %v", typ.Clue_, typ.Name)
+		return nil, fmt.Errorf("unknown type: %v %v", typ.Clue, typ.Name)
 	}
 }
 
@@ -87,7 +87,7 @@ func ReadToValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 	bo := ModelByteOrderToBinaryByteOrder(typ.ByteOrder)
 
 	v := &model.Value{}
-	switch typ.Clue_ {
+	switch typ.Clue {
 	/*
 		case model.TYPE_CLUE_STRING:
 			v.StringValue = string(buff)

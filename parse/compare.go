@@ -54,7 +54,7 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 
 	// Value
 	value := line[poz : poz+end]
-	switch type_.Clue_ {
+	switch type_.Clue {
 	case model.TYPE_CLUE_STRING:
 		compare.RawExpected, err = HandleStringEscape(value)
 		if err != nil {

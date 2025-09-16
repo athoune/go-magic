@@ -108,7 +108,7 @@ func intPow(base, exp int) int {
 func TestStringValue(t *testing.T) {
 	typ := &model.Type{
 		Root:   "long",
-		Clue_:  model.TYPE_CLUE_INT,
+		Clue:   model.TYPE_CLUE_INT,
 		Signed: true,
 	}
 	v, err := BuildValueFromString(typ, "42")

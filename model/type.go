@@ -26,7 +26,7 @@ type Type struct {
 	ByteOrder BYTE_ORDER
 	Signed    bool
 	Name      string
-	Clue_     Clue
+	Clue      Clue
 	// Filter
 	FilterOperator       byte
 	FilterBinaryArgument uint64

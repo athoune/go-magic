@@ -21,7 +21,7 @@ func TestParseLine(t *testing.T) {
 			RawExpected:    "0x3030",
 			BinaryExpected: 0x3030,
 			Type: &model.Type{
-				Clue_:                model.TYPE_CLUE_INT,
+				Clue:                 model.TYPE_CLUE_INT,
 				Name:                 "belong",
 				Root:                 "long",
 				FilterOperator:       '&',
@@ -39,7 +39,7 @@ func TestParseLine(t *testing.T) {
 				Name:      "lelong",
 				Root:      "long",
 				Signed:    true,
-				Clue_:     model.TYPE_CLUE_INT,
+				Clue:      model.TYPE_CLUE_INT,
 				ByteOrder: model.LITTLE_ENDIAN,
 			}},
 		},
@@ -48,9 +48,9 @@ func TestParseLine(t *testing.T) {
 			RawExpected:    "10",
 			BinaryExpected: 10,
 			Type: &model.Type{
-				Name:  "ubyte",
-				Root:  "byte",
-				Clue_: model.TYPE_CLUE_INT,
+				Name: "ubyte",
+				Root: "byte",
+				Clue: model.TYPE_CLUE_INT,
 			},
 		}},
 		{`0	string 		Draw		RISC OS Draw file data`, &model.Compare{
@@ -60,7 +60,7 @@ func TestParseLine(t *testing.T) {
 				Name:   "string",
 				Root:   "string",
 				Signed: true,
-				Clue_:  model.TYPE_CLUE_STRING,
+				Clue:   model.TYPE_CLUE_STRING,
 			},
 		}},
 		{`>12	leshort	!1	%d patterns`, &model.Compare{
@@ -73,7 +73,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "short",
 				Signed:    true,
 				ByteOrder: model.LITTLE_ENDIAN,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`0	string	\x02\x01\x13\x13\x10\x14\x12\x0e`, &model.Compare{
 			Comparator:  '=',
@@ -82,7 +82,7 @@ func TestParseLine(t *testing.T) {
 				Name:   "string",
 				Root:   "string",
 				Signed: true,
-				Clue_:  model.TYPE_CLUE_STRING},
+				Clue:   model.TYPE_CLUE_STRING},
 		}},
 		{`>9	belong  !0x0A0D1A00	game data, CORRUPTED`, &model.Compare{
 			Not:            true,
@@ -94,7 +94,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "long",
 				ByteOrder: model.BIG_ENDIAN,
 				Signed:    true,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`>>>>&1	string		x		"%s"`, &model.Compare{
 			X: true,
@@ -102,7 +102,7 @@ func TestParseLine(t *testing.T) {
 				Name:   "string",
 				Root:   "string",
 				Signed: true,
-				Clue_:  model.TYPE_CLUE_STRING,
+				Clue:   model.TYPE_CLUE_STRING,
 			},
 		}},
 		{`0	search/8192	(input,`, &model.Compare{
@@ -112,7 +112,7 @@ func TestParseLine(t *testing.T) {
 				Name:                 "search",
 				Root:                 "search",
 				Signed:               true,
-				Clue_:                model.TYPE_CLUE_STRING,
+				Clue:                 model.TYPE_CLUE_STRING,
 				FilterOperator:       '/',
 				FilterStringArgument: "8192",
 				SearchRange:          8192,
@@ -127,7 +127,7 @@ func TestParseLine(t *testing.T) {
 				Root:                 "long",
 				Signed:               false,
 				ByteOrder:            model.BIG_ENDIAN,
-				Clue_:                model.TYPE_CLUE_INT,
+				Clue:                 model.TYPE_CLUE_INT,
 				FilterOperator:       '%',
 				FilterBinaryArgument: 44100,
 				FilterStringArgument: "44100",
@@ -141,7 +141,7 @@ func TestParseLine(t *testing.T) {
 				Name:                 "ubyte",
 				Root:                 "byte",
 				Signed:               false,
-				Clue_:                model.TYPE_CLUE_INT,
+				Clue:                 model.TYPE_CLUE_INT,
 				FilterOperator:       '/',
 				FilterBinaryArgument: 4,
 				FilterStringArgument: "4",
@@ -156,7 +156,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "long",
 				Signed:    true,
 				ByteOrder: model.LITTLE_ENDIAN,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`>>>>(0x3C.b+0x0FF)	string	Invalid\ partition\ table		english`, &model.Compare{
 			Comparator:  '=',
@@ -165,7 +165,7 @@ func TestParseLine(t *testing.T) {
 				Name:   "string",
 				Root:   "string",
 				Signed: true,
-				Clue_:  model.TYPE_CLUE_STRING},
+				Clue:   model.TYPE_CLUE_STRING},
 		}},
 		{`0	string		AES`, &model.Compare{
 			Comparator:  '=',
@@ -174,7 +174,7 @@ func TestParseLine(t *testing.T) {
 				Name:   "string",
 				Root:   "string",
 				Signed: true,
-				Clue_:  model.TYPE_CLUE_STRING},
+				Clue:   model.TYPE_CLUE_STRING},
 		}},
 		{`>>88	belong	& 1			\b, valid`, &model.Compare{
 			Comparator:     '&',
@@ -185,7 +185,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "long",
 				ByteOrder: model.BIG_ENDIAN,
 				Signed:    true,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`0 belong 0x736C6821   Allegro datafile (packed)`, &model.Compare{
 			Comparator:     '=',
@@ -196,7 +196,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "long",
 				ByteOrder: model.BIG_ENDIAN,
 				Signed:    true,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`>(4.L+28)	beshort+1	>0	\b, %u type`, &model.Compare{
 			Comparator:     '>',
@@ -207,7 +207,7 @@ func TestParseLine(t *testing.T) {
 				Root:                 "short",
 				Signed:               true,
 				ByteOrder:            model.BIG_ENDIAN,
-				Clue_:                model.TYPE_CLUE_INT,
+				Clue:                 model.TYPE_CLUE_INT,
 				FilterOperator:       '+',
 				FilterBinaryArgument: 1,
 				FilterStringArgument: "1",
@@ -222,7 +222,7 @@ func TestParseLine(t *testing.T) {
 				Root:                 "long",
 				ByteOrder:            model.BIG_ENDIAN,
 				Signed:               true,
-				Clue_:                model.TYPE_CLUE_INT,
+				Clue:                 model.TYPE_CLUE_INT,
 				FilterOperator:       '&',
 				FilterBinaryArgument: 0xffffe000,
 				FilterStringArgument: "0xffffe000",
@@ -235,7 +235,7 @@ func TestParseLine(t *testing.T) {
 				Name:   "string",
 				Root:   "string",
 				Signed: true,
-				Clue_:  model.TYPE_CLUE_STRING},
+				Clue:   model.TYPE_CLUE_STRING},
 		}},
 		{`>0x1D5		ubequad		0x2f30313233343536	configuration of Tasmota firmware (ESP8266)`,
 			&model.Compare{
@@ -247,7 +247,7 @@ func TestParseLine(t *testing.T) {
 					Root:      "quad",
 					Signed:    false,
 					ByteOrder: model.BIG_ENDIAN,
-					Clue_:     model.TYPE_CLUE_INT,
+					Clue:      model.TYPE_CLUE_INT,
 				},
 			}},
 		{`>>11		ubyte^0x65	x			\b, version %u`, &model.Compare{
@@ -255,7 +255,7 @@ func TestParseLine(t *testing.T) {
 			Type: &model.Type{
 				Name:                 "ubyte",
 				Root:                 "byte",
-				Clue_:                model.TYPE_CLUE_INT,
+				Clue:                 model.TYPE_CLUE_INT,
 				FilterOperator:       '^',
 				FilterBinaryArgument: 0x65,
 				FilterStringArgument: "0x65",
@@ -270,7 +270,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "long",
 				ByteOrder: model.LITTLE_ENDIAN,
 				Signed:    true,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`>0x68	lequad		8	\b, UUID=`, &model.Compare{
 			Comparator:     '=',
@@ -281,7 +281,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "quad",
 				Signed:    true,
 				ByteOrder: model.LITTLE_ENDIAN,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`>>15	ulelong		!0x00010000h	\b, version %#8.8`, &model.Compare{
 			Comparator:     '=',
@@ -293,7 +293,7 @@ func TestParseLine(t *testing.T) {
 				Root:      "long",
 				Signed:    false,
 				ByteOrder: model.LITTLE_ENDIAN,
-				Clue_:     model.TYPE_CLUE_INT},
+				Clue:      model.TYPE_CLUE_INT},
 		}},
 		{`>>>>>>(&4.l+(-4))	string		ITOLITLS	\b, Microsoft compiled help format 2.0`,
 			&model.Compare{
@@ -303,7 +303,7 @@ func TestParseLine(t *testing.T) {
 					Name:   "string",
 					Root:   "string",
 					Signed: true,
-					Clue_:  model.TYPE_CLUE_STRING},
+					Clue:   model.TYPE_CLUE_STRING},
 			}},
 		{`0	string	zz	MGR bitmap, old format, 1-bit deep, 16-bit aligned`,
 			&model.Compare{
@@ -313,7 +313,7 @@ func TestParseLine(t *testing.T) {
 					Name:   "string",
 					Root:   "string",
 					Signed: true,
-					Clue_:  model.TYPE_CLUE_STRING,
+					Clue:   model.TYPE_CLUE_STRING,
 				},
 			}},
 	} {
