@@ -1,6 +1,11 @@
 package parse
 
-import "github.com/athoune/go-magic/model"
+import (
+	"strconv"
+	"strings"
+
+	"github.com/athoune/go-magic/model"
+)
 
 const (
 	COMPARE_LESS    = uint8(60)
@@ -49,12 +54,34 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 
 	// Value
 	value := line[poz : poz+end]
-	if type_.Clue_ == model.TYPE_CLUE_STRING {
+	switch type_.Clue_ {
+	case model.TYPE_CLUE_STRING:
 		compare.RawExpected, err = HandleStringEscape(value)
 		if err != nil {
 			return nil, poz + end, err
 		}
-	} else {
+	case model.TYPE_CLUE_INT:
+		compare.RawExpected = value
+		if strings.HasSuffix(compare.RawExpected, "h") ||
+			strings.HasSuffix(compare.RawExpected, "L") {
+			/*
+				[FIXME]
+				What the hell are this letters ?!
+				 >>15	ulelong		!0x00010000h	\b, version %#8.8
+				 0	lelong		0x1b031336L	Netboot image,
+			*/
+			compare.BinaryExpected, err = strconv.ParseUint(
+				compare.RawExpected[:len(compare.RawExpected)-1], 0, 64)
+			if err != nil {
+				return nil, poz + end, err
+			}
+		} else {
+			compare.BinaryExpected, err = strconv.ParseUint(compare.RawExpected, 0, 64)
+			if err != nil {
+				return nil, poz + end, err
+			}
+		}
+	default:
 		compare.RawExpected = value
 	}
 	//

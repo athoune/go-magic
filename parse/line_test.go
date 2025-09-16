@@ -12,9 +12,14 @@ func TestParseLine(t *testing.T) {
 		line    string
 		Compare *model.Compare
 	}{
+		/*
+			{`>>12	indirect/r	x`, &model.Compare{
+
+			}},*/
 		{`>>16	belong&0xfe00f0f0	0x3030`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0x3030",
+			Comparator:     '=',
+			RawExpected:    "0x3030",
+			BinaryExpected: 0x3030,
 			Type: &model.Type{
 				Clue_:                model.TYPE_CLUE_INT,
 				Name:                 "belong",
@@ -27,8 +32,9 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`0	lelong		0xc3cbc6c5	RISC OS Chunk data`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0xc3cbc6c5",
+			Comparator:     '=',
+			RawExpected:    "0xc3cbc6c5",
+			BinaryExpected: 0xc3cbc6c5,
 			Type: &model.Type{
 				Name:      "lelong",
 				Root:      "long",
@@ -38,8 +44,9 @@ func TestParseLine(t *testing.T) {
 			}},
 		},
 		{`>>>>>>0	ubyte			< 10	Infocom (Z-machine %d`, &model.Compare{
-			Comparator:  '<',
-			RawExpected: "10",
+			Comparator:     '<',
+			RawExpected:    "10",
+			BinaryExpected: 10,
 			Type: &model.Type{
 				Name:  "ubyte",
 				Root:  "byte",
@@ -57,9 +64,10 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`>12	leshort	!1	%d patterns`, &model.Compare{
-			Not:         true,
-			Comparator:  '=',
-			RawExpected: "1",
+			Not:            true,
+			Comparator:     '=',
+			RawExpected:    "1",
+			BinaryExpected: 1,
 			Type: &model.Type{
 				Name:      "leshort",
 				Root:      "short",
@@ -77,9 +85,10 @@ func TestParseLine(t *testing.T) {
 				Clue_:  model.TYPE_CLUE_STRING},
 		}},
 		{`>9	belong  !0x0A0D1A00	game data, CORRUPTED`, &model.Compare{
-			Not:         true,
-			Comparator:  '=',
-			RawExpected: "0x0A0D1A00",
+			Not:            true,
+			Comparator:     '=',
+			RawExpected:    "0x0A0D1A00",
+			BinaryExpected: 0x0A0D1A00,
 			Type: &model.Type{
 				Name:      "belong",
 				Root:      "long",
@@ -110,8 +119,9 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`>>>>>>&8	ubelong%44100	0`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0",
+			Comparator:     '=',
+			RawExpected:    "0",
+			BinaryExpected: 0,
 			Type: &model.Type{
 				Name:                 "ubelong",
 				Root:                 "long",
@@ -124,8 +134,9 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`>8		ubyte/4		=0		CHN: 4`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0",
+			Comparator:     '=',
+			RawExpected:    "0",
+			BinaryExpected: 0,
 			Type: &model.Type{
 				Name:                 "ubyte",
 				Root:                 "byte",
@@ -137,8 +148,9 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`>>&(0x04)	lelong	>0	\b, with %d reference sequences`, &model.Compare{
-			Comparator:  '>',
-			RawExpected: "0",
+			Comparator:     '>',
+			RawExpected:    "0",
+			BinaryExpected: 0,
 			Type: &model.Type{
 				Name:      "lelong",
 				Root:      "long",
@@ -165,8 +177,9 @@ func TestParseLine(t *testing.T) {
 				Clue_:  model.TYPE_CLUE_STRING},
 		}},
 		{`>>88	belong	& 1			\b, valid`, &model.Compare{
-			Comparator:  '&',
-			RawExpected: "1",
+			Comparator:     '&',
+			RawExpected:    "1",
+			BinaryExpected: 1,
 			Type: &model.Type{
 				Name:      "belong",
 				Root:      "long",
@@ -175,8 +188,9 @@ func TestParseLine(t *testing.T) {
 				Clue_:     model.TYPE_CLUE_INT},
 		}},
 		{`0 belong 0x736C6821   Allegro datafile (packed)`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0x736C6821",
+			Comparator:     '=',
+			RawExpected:    "0x736C6821",
+			BinaryExpected: 0x736C6821,
 			Type: &model.Type{
 				Name:      "belong",
 				Root:      "long",
@@ -185,8 +199,9 @@ func TestParseLine(t *testing.T) {
 				Clue_:     model.TYPE_CLUE_INT},
 		}},
 		{`>(4.L+28)	beshort+1	>0	\b, %u type`, &model.Compare{
-			Comparator:  '>',
-			RawExpected: "0",
+			Comparator:     '>',
+			RawExpected:    "0",
+			BinaryExpected: 0,
 			Type: &model.Type{
 				Name:                 "beshort",
 				Root:                 "short",
@@ -199,8 +214,9 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`0	belong&0xffffe000	0x76ff2000 CDC Codec archive data`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0x76ff2000",
+			Comparator:     '=',
+			RawExpected:    "0x76ff2000",
+			BinaryExpected: 0x76ff2000,
 			Type: &model.Type{
 				Name:                 "belong",
 				Root:                 "long",
@@ -223,8 +239,9 @@ func TestParseLine(t *testing.T) {
 		}},
 		{`>0x1D5		ubequad		0x2f30313233343536	configuration of Tasmota firmware (ESP8266)`,
 			&model.Compare{
-				Comparator:  '=',
-				RawExpected: "0x2f30313233343536",
+				Comparator:     '=',
+				RawExpected:    "0x2f30313233343536",
+				BinaryExpected: 0x2f30313233343536,
 				Type: &model.Type{
 					Name:      "ubequad",
 					Root:      "quad",
@@ -245,8 +262,9 @@ func TestParseLine(t *testing.T) {
 			},
 		}},
 		{`0	lelong		0x1b031336L	Netboot image,`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "0x1b031336L",
+			Comparator:     '=',
+			RawExpected:    "0x1b031336L",
+			BinaryExpected: 0x1b031336,
 			Type: &model.Type{
 				Name:      "lelong",
 				Root:      "long",
@@ -255,8 +273,9 @@ func TestParseLine(t *testing.T) {
 				Clue_:     model.TYPE_CLUE_INT},
 		}},
 		{`>0x68	lequad		8	\b, UUID=`, &model.Compare{
-			Comparator:  '=',
-			RawExpected: "8",
+			Comparator:     '=',
+			RawExpected:    "8",
+			BinaryExpected: 8,
 			Type: &model.Type{
 				Name:      "lequad",
 				Root:      "quad",
@@ -265,9 +284,10 @@ func TestParseLine(t *testing.T) {
 				Clue_:     model.TYPE_CLUE_INT},
 		}},
 		{`>>15	ulelong		!0x00010000h	\b, version %#8.8`, &model.Compare{
-			Comparator:  '=',
-			Not:         true,
-			RawExpected: "0x00010000h",
+			Comparator:     '=',
+			Not:            true,
+			RawExpected:    "0x00010000h",
+			BinaryExpected: 0x00010000,
 			Type: &model.Type{
 				Name:      "ulelong",
 				Root:      "long",
