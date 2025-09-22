@@ -12,7 +12,7 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 	bo := ModelByteOrderToBinaryByteOrder(typ.ByteOrder)
 
 	v := &model.Value{}
-	switch typ.Clue {
+	switch typ.Family {
 	/*
 		case model.TYPE_CLUE_STRING:
 			v.StringValue = string(buff)
