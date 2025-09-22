@@ -30,9 +30,9 @@ func ParseType(line string) (*model.Type, error) {
 	if t.Name == "" {
 		t.Name = line
 	}
-	t.Signed, t.ByteOrder, t.Root = model.ByteOrderAndSigned(t.Name)
 	var ok bool
-	if t.Clue, ok = model.Types[t.Name]; !ok {
+	t.ByteOrder, t.Root = model.ByteOrderAndSigned(t.Name)
+	if t.Family, ok = model.Types[t.Root]; !ok {
 		return nil, fmt.Errorf("unknown type [%v]", t.Name)
 	}
 	switch t.Root {

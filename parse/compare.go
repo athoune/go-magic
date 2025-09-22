@@ -54,13 +54,14 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 
 	// Value
 	value := line[poz : poz+end]
-	switch type_.Clue {
+	switch type_.Family {
 	case model.TYPE_CLUE_STRING:
 		compare.RawExpected, err = HandleStringEscape(value)
 		if err != nil {
 			return nil, poz + end, err
 		}
-	case model.TYPE_CLUE_INT:
+
+	case model.TYPE_CLUE_INT, model.TYPE_CLUE_UINT:
 		compare.RawExpected = value
 		if strings.HasSuffix(compare.RawExpected, "h") ||
 			strings.HasSuffix(compare.RawExpected, "L") {

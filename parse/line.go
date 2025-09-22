@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/athoune/go-magic/model"
-	"go.uber.org/zap"
 )
 
 type step_test int
@@ -18,7 +17,6 @@ const (
 
 // ParseLine parse the complete line
 func ParseLine(test *model.Test, line string) error {
-	defer zap.L().Info("ParseLine", zap.Any("Test", test))
 	test.Raw = line
 
 	// offset
