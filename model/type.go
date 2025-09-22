@@ -2,6 +2,7 @@ package model
 
 const (
 	TYPE_CLUE_INT = Clue(iota)
+	TYPE_CLUE_UINT
 	TYPE_CLUE_FLOAT
 	TYPE_CLUE_STRING
 )
@@ -24,7 +25,6 @@ const (
 type Type struct {
 	Root      string // ubelong -> long
 	ByteOrder BYTE_ORDER
-	Signed    bool
 	Name      string
 	Clue      Clue
 	// Filter

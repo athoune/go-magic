@@ -12,8 +12,7 @@ import (
 
 func TestUnpackSignedByte(t *testing.T) {
 	typ := &model.Type{
-		Signed: true,
-		Root:   "byte",
+		Root: "byte",
 	}
 	v, l, err := ReadValue(typ, bytes.NewReader([]byte{12, 14, 3}))
 	assert.NoError(t, err)
@@ -78,7 +77,6 @@ func TestUnpackSigned(t *testing.T) {
 		typ := &model.Type{
 			ByteOrder: fixture.endianness,
 			Root:      fixture.root,
-			Signed:    true,
 		}
 		v, l, err := ReadValue(typ, bytes.NewReader(fixture.data))
 		assert.NoError(t, err)

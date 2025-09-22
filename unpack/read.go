@@ -31,59 +31,62 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 			err = binary.Read(r, bo, &v.FloatValue)
 		}
 		return v, size, err
+
+	case model.TYPE_CLUE_UINT:
+		var err error
+		var size int
+		switch typ.Root {
+		case "byte":
+			var b byte
+			err = binary.Read(r, bo, &b)
+			v.UIntValue = uint64(b)
+			size = 1
+		case "short":
+			var s uint16
+			err = binary.Read(r, bo, &s)
+			v.UIntValue = uint64(s)
+			size = 2
+		case "long":
+			var l uint32
+			err = binary.Read(r, bo, &l)
+			v.UIntValue = uint64(l)
+			size = 4
+		case "quad":
+			var q uint64
+			err = binary.Read(r, bo, &q)
+			v.UIntValue = uint64(q)
+			size = 8
+		default:
+			return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
+		}
+		return v, size, err
+
 	case model.TYPE_CLUE_INT:
 		var err error
 		var size int
-		if typ.Signed {
-			switch typ.Root {
-			case "byte":
-				var b byte
-				err = binary.Read(r, bo, &b)
-				v.IntValue = int64(b)
-				size = 1
-			case "short":
-				var s int16
-				err = binary.Read(r, bo, &s)
-				v.IntValue = int64(s)
-				size = 2
-			case "long":
-				var l int32
-				err = binary.Read(r, bo, &l)
-				v.IntValue = int64(l)
-				size = 4
-			case "quad":
-				var q int64
-				err = binary.Read(r, bo, &q)
-				v.IntValue = int64(q)
-				size = 8
-			default:
-				return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
-			}
-		} else {
-			switch typ.Root {
-			case "byte":
-				var b byte
-				err = binary.Read(r, bo, &b)
-				v.UIntValue = uint64(b)
-				size = 1
-			case "short":
-				var s uint16
-				err = binary.Read(r, bo, &s)
-				v.UIntValue = uint64(s)
-				size = 2
-			case "long":
-				var l uint32
-				err = binary.Read(r, bo, &l)
-				v.UIntValue = uint64(l)
-				size = 4
-			case "quad":
-				var q uint64
-				err = binary.Read(r, bo, &q)
-				v.UIntValue = uint64(q)
-				size = 8
-			default:
-				return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
-			}
+		switch typ.Root {
+		case "byte":
+			var b byte
+			err = binary.Read(r, bo, &b)
+			v.IntValue = int64(b)
+			size = 1
+		case "short":
+			var s int16
+			err = binary.Read(r, bo, &s)
+			v.IntValue = int64(s)
+			size = 2
+		case "long":
+			var l int32
+			err = binary.Read(r, bo, &l)
+			v.IntValue = int64(l)
+			size = 4
+		case "quad":
+			var q int64
+			err = binary.Read(r, bo, &q)
+			v.IntValue = int64(q)
+			size = 8
+		default:
+			return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
 		}
 		return v, size, err
 	default:
