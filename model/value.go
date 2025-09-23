@@ -1,7 +1,7 @@
 package model
 
 type Value struct {
-	Family         Family
+	Family         TypeFamily
 	StringValue    string
 	FloatValue     float64
 	IntValue       int64

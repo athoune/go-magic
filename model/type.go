@@ -1,13 +1,13 @@
 package model
 
 const (
-	TYPE_CLUE_INT = Family(iota)
-	TYPE_CLUE_UINT
-	TYPE_CLUE_FLOAT
-	TYPE_CLUE_STRING
+	TYPE_FAMILY_INT = TypeFamily(iota)
+	TYPE_FAMILY_UINT
+	TYPE_FAMILY_FLOAT
+	TYPE_FAMILY_STRING
 )
 
-type Family int
+type TypeFamily int
 type StringOptions uint16
 
 const (
@@ -23,10 +23,10 @@ const (
 )
 
 type Type struct {
-	Root      string // ubelong -> long
-	ByteOrder BYTE_ORDER
-	Name      string
-	Family    Family
+	Root       string // ubelong -> long
+	ByteOrder  BYTE_ORDER
+	Name       string
+	TypeFamily TypeFamily
 	// Filter
 	FilterOperator       byte
 	FilterBinaryArgument uint64
@@ -38,47 +38,47 @@ type Type struct {
 	SearchCount int
 }
 
-var Types map[string]Family
+var Types map[string]TypeFamily
 
 func init() {
 	// [FIXME] use type shortener
-	Types = map[string]Family{
-		"byte":        TYPE_CLUE_INT,
-		"ubyte":       TYPE_CLUE_UINT,
-		"short":       TYPE_CLUE_INT,
-		"ushort":      TYPE_CLUE_UINT,
-		"u4":          TYPE_CLUE_INT,
-		"long":        TYPE_CLUE_INT,
-		"ulong":       TYPE_CLUE_UINT,
-		"u8":          TYPE_CLUE_INT,
-		"quad":        TYPE_CLUE_INT,
-		"uquad":       TYPE_CLUE_UINT,
-		"float":       TYPE_CLUE_FLOAT,
-		"double":      TYPE_CLUE_FLOAT,
-		"string":      TYPE_CLUE_STRING,
-		"pstring":     TYPE_CLUE_STRING,
-		"ustring":     TYPE_CLUE_STRING,
-		"date":        TYPE_CLUE_STRING,
-		"lemsdosdate": TYPE_CLUE_STRING,
-		"qdate":       TYPE_CLUE_STRING,
-		"ldate":       TYPE_CLUE_STRING,
-		"qldate":      TYPE_CLUE_STRING,
-		"qwdate":      TYPE_CLUE_STRING,
-		"uledate":     TYPE_CLUE_STRING,
-		"ubeqdate":    TYPE_CLUE_STRING,
-		"lemsdostime": TYPE_CLUE_STRING,
-		"beid3":       TYPE_CLUE_STRING,
-		"id3":         TYPE_CLUE_STRING,
-		"meldate":     TYPE_CLUE_STRING,
-		"indirect":    TYPE_CLUE_STRING,
-		"name":        TYPE_CLUE_STRING,
-		"use":         TYPE_CLUE_STRING,
-		"regex":       TYPE_CLUE_STRING,
-		"search":      TYPE_CLUE_STRING,
-		"default":     TYPE_CLUE_STRING,
-		"clear":       TYPE_CLUE_STRING,
-		"der":         TYPE_CLUE_STRING,
-		"guid":        TYPE_CLUE_STRING,
-		"offset":      TYPE_CLUE_STRING,
+	Types = map[string]TypeFamily{
+		"byte":        TYPE_FAMILY_INT,
+		"ubyte":       TYPE_FAMILY_UINT,
+		"short":       TYPE_FAMILY_INT,
+		"ushort":      TYPE_FAMILY_UINT,
+		"u4":          TYPE_FAMILY_INT,
+		"long":        TYPE_FAMILY_INT,
+		"ulong":       TYPE_FAMILY_UINT,
+		"u8":          TYPE_FAMILY_INT,
+		"quad":        TYPE_FAMILY_INT,
+		"uquad":       TYPE_FAMILY_UINT,
+		"float":       TYPE_FAMILY_FLOAT,
+		"double":      TYPE_FAMILY_FLOAT,
+		"string":      TYPE_FAMILY_STRING,
+		"pstring":     TYPE_FAMILY_STRING,
+		"ustring":     TYPE_FAMILY_STRING,
+		"date":        TYPE_FAMILY_STRING,
+		"lemsdosdate": TYPE_FAMILY_STRING,
+		"qdate":       TYPE_FAMILY_STRING,
+		"ldate":       TYPE_FAMILY_STRING,
+		"qldate":      TYPE_FAMILY_STRING,
+		"qwdate":      TYPE_FAMILY_STRING,
+		"uledate":     TYPE_FAMILY_STRING,
+		"ubeqdate":    TYPE_FAMILY_STRING,
+		"lemsdostime": TYPE_FAMILY_STRING,
+		"beid3":       TYPE_FAMILY_STRING,
+		"id3":         TYPE_FAMILY_STRING,
+		"meldate":     TYPE_FAMILY_STRING,
+		"indirect":    TYPE_FAMILY_STRING,
+		"name":        TYPE_FAMILY_STRING,
+		"use":         TYPE_FAMILY_STRING,
+		"regex":       TYPE_FAMILY_STRING,
+		"search":      TYPE_FAMILY_STRING,
+		"default":     TYPE_FAMILY_STRING,
+		"clear":       TYPE_FAMILY_STRING,
+		"der":         TYPE_FAMILY_STRING,
+		"guid":        TYPE_FAMILY_STRING,
+		"offset":      TYPE_FAMILY_STRING,
 	}
 }
