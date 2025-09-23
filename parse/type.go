@@ -32,7 +32,7 @@ func ParseType(line string) (*model.Type, error) {
 	}
 	var ok bool
 	t.ByteOrder, t.Root = model.ByteOrderAndSigned(t.Name)
-	if t.Family, ok = model.Types[t.Root]; !ok {
+	if t.TypeFamily, ok = model.Types[t.Root]; !ok {
 		return nil, fmt.Errorf("unknown type [%v]", t.Name)
 	}
 	switch t.Root {

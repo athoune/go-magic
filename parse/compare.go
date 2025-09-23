@@ -1,10 +1,8 @@
 package parse
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/athoune/go-magic/model"
+	"github.com/athoune/go-magic/unpack"
 )
 
 const (
@@ -24,6 +22,8 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 	}
 	if line[0] == 'x' {
 		compare.X = true
+		compare.Expected = nil
+		compare.Comparator = 0
 		return compare, 1, nil
 	}
 	poz := 0
@@ -54,37 +54,10 @@ func ParseCompare(line string, type_ *model.Type) (*model.Compare, int, error) {
 
 	// Value
 	value := line[poz : poz+end]
-	switch type_.Family {
-	case model.TYPE_CLUE_STRING:
-		compare.RawExpected, err = HandleStringEscape(value)
-		if err != nil {
-			return nil, poz + end, err
-		}
-
-	case model.TYPE_CLUE_INT, model.TYPE_CLUE_UINT:
-		compare.RawExpected = value
-		if strings.HasSuffix(compare.RawExpected, "h") ||
-			strings.HasSuffix(compare.RawExpected, "L") {
-			/*
-				[FIXME]
-				What the hell are this letters ?!
-				 >>15	ulelong		!0x00010000h	\b, version %#8.8
-				 0	lelong		0x1b031336L	Netboot image,
-			*/
-			compare.BinaryExpected, err = strconv.ParseUint(
-				compare.RawExpected[:len(compare.RawExpected)-1], 0, 64)
-			if err != nil {
-				return nil, poz + end, err
-			}
-		} else {
-			compare.BinaryExpected, err = strconv.ParseUint(compare.RawExpected, 0, 64)
-			if err != nil {
-				return nil, poz + end, err
-			}
-		}
-	default:
-		compare.RawExpected = value
+	compare.Expected, err = unpack.BuildValueFromString(type_, value)
+	if err != nil {
+		return nil, poz + end, err
 	}
-	//
+	compare.RawExpected = value
 	return compare, poz + end, nil
 }

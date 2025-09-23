@@ -1,8 +1,6 @@
 package parse
 
 import (
-	"bytes"
-	"strconv"
 	"unicode"
 )
 
@@ -22,33 +20,6 @@ func HandleSpaceEscape(line string) int {
 		}
 	}
 	return end
-}
-
-func HandleStringEscape(value string) (string, error) {
-	poz := 0
-	out := &bytes.Buffer{}
-	for {
-		if poz == len(value) {
-			break
-		}
-		switch {
-		case poz+4 <= len(value) && value[poz:poz+2] == `\x`:
-			v, err := strconv.ParseInt(value[poz+2:poz+4], 16, 64)
-			if err != nil {
-				return value, nil // YOLO, file use \x2\x4 in archive#1362
-			}
-			out.WriteByte(byte(v))
-			poz += 4
-		case poz+2 <= len(value) && value[poz:poz+2] == `\ `:
-			out.WriteByte(' ')
-			poz += 2
-		default:
-			out.WriteByte(value[poz])
-			poz++
-		}
-	}
-	return out.String(), nil
-
 }
 
 func IsOperation(op byte) bool {
