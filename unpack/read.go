@@ -12,12 +12,12 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 	bo := ModelByteOrderToBinaryByteOrder(typ.ByteOrder)
 
 	v := &model.Value{}
-	switch typ.Family {
+	switch typ.TypeFamily {
 	/*
 		case model.TYPE_CLUE_STRING:
 			v.StringValue = string(buff)
 	*/
-	case model.TYPE_CLUE_FLOAT:
+	case model.TYPE_FAMILY_FLOAT:
 		var size int
 		var err error
 		switch typ.Root {
@@ -32,7 +32,7 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 		}
 		return v, size, err
 
-	case model.TYPE_CLUE_UINT:
+	case model.TYPE_FAMILY_UINT:
 		var err error
 		var size int
 		switch typ.Root {
@@ -61,7 +61,7 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 		}
 		return v, size, err
 
-	case model.TYPE_CLUE_INT:
+	case model.TYPE_FAMILY_INT:
 		var err error
 		var size int
 		switch typ.Root {

@@ -9,8 +9,8 @@ import (
 
 func TestStringValue(t *testing.T) {
 	typ := &model.Type{
-		Root:   "long",
-		Family: model.TYPE_CLUE_INT,
+		Root:       "long",
+		TypeFamily: model.TYPE_FAMILY_INT,
 	}
 	v, err := BuildValueFromString(typ, "42")
 	assert.NoError(t, err)
