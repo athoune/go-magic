@@ -16,6 +16,24 @@ func TestParseLine(t *testing.T) {
 			{`>>12	indirect/r	x`, &model.Compare{
 
 			}},*/
+		{`>16	medate		x		\b, modified %s`, &model.Compare{
+			Comparator: '=',
+		}},
+		{`>>>1044	search		Version=	\b, version`, &model.Compare{
+			Comparator:  '=',
+			RawExpected: "Version=",
+			Expected: &model.Value{
+				Family:      model.TYPE_FAMILY_STRING,
+				StringValue: "Version=",
+			},
+			Type: &model.Type{
+				TypeFamily:    model.TYPE_FAMILY_STRING,
+				SearchRange:   0,
+				StringOptions: 0,
+				Root:          "search",
+				Name:          "search",
+			},
+		}},
 		{`0	bequad	0xB7D800203749DA11`, &model.Compare{
 			Comparator:  '=',
 			RawExpected: "0xB7D800203749DA11",

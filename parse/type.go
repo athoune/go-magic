@@ -107,6 +107,9 @@ func parseStringOptions(stringOptionsRaw string) (model.StringOptions, error) {
 
 // parseSearchOptions returns 'range' and 'options' (aka 'string options')
 func parseSearchOptions(args string) (int, model.StringOptions, error) {
+	if args == "" {
+		return 0, 0, nil
+	}
 	s := strings.IndexRune(args, '/')
 	if s == 0 {
 		return 0, model.STRING_OPTIONS_NONE,

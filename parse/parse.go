@@ -2,6 +2,7 @@ package parse
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -86,6 +87,7 @@ func Parse(r io.Reader, file *model.File) (int, error) {
 		test.File = file.Name
 		err = ParseLine(test, line)
 		if err != nil {
+			fmt.Printf("Parse error in %s#%v\n%s\n", file.Name, test.Line, line)
 			return n_line, err
 		}
 		if test.Type.Name == "name" {
