@@ -59,6 +59,7 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 		default:
 			return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
 		}
+		v.RawBinaryValue = v.UIntValue
 		return v, size, err
 
 	case model.TYPE_FAMILY_INT:
@@ -88,6 +89,7 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 		default:
 			return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
 		}
+		v.RawBinaryValue = uint64(v.IntValue)
 		return v, size, err
 	default:
 		return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
