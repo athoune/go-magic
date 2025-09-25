@@ -37,3 +37,8 @@ func TestHandleStringEscape(t *testing.T) {
 		assert.Equal(t, fixture.escaped, s, "%v => %v", fixture.raw, s)
 	}
 }
+
+func TestMiddleBigEndian(t *testing.T) {
+	assert.Equal(t, []byte{0xB7, 0xA0, 0x08, 0x07},
+		middleBigEndian([]byte{0xA0, 0xB7, 0x07, 0x08}))
+}

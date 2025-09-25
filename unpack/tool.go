@@ -23,6 +23,8 @@ func ModelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
 		return binary.LittleEndian
 	case model.BIG_ENDIAN:
 		return binary.BigEndian
+	case model.MIDDLE_ENDIAN:
+		return &MiddleBigEndian{}
 	default:
 		return binary.NativeEndian
 	}
@@ -98,4 +100,44 @@ func BytesAndTypeToUInt64(typ *model.Type, value []byte) (uint64, error) {
 	var v uint64
 	err := binary.Read(r, ModelByteOrderToBinaryByteOrder(typ.ByteOrder), &v)
 	return v, err
+}
+
+func middleBigEndian(blob []byte) []byte {
+	// https://fr.wikipedia.org/wiki/Boutisme
+	resp := make([]byte, len(blob))
+	for i := 0; i < len(blob); i += 2 {
+		resp[i] = blob[i+1]
+		resp[i+1] = blob[i]
+	}
+	return resp
+}
+
+type MiddleBigEndian struct{}
+
+func (m *MiddleBigEndian) Uint16(b []byte) uint16 {
+	return binary.BigEndian.Uint16(middleBigEndian(b))
+}
+
+func (m *MiddleBigEndian) Uint32(b []byte) uint32 {
+	return binary.BigEndian.Uint32(b)
+}
+
+func (m *MiddleBigEndian) Uint64(b []byte) uint64 {
+	return binary.BigEndian.Uint64(b)
+}
+
+func (m *MiddleBigEndian) PutUint16(b []byte, v uint16) {
+	binary.BigEndian.PutUint16(b, v)
+}
+
+func (m *MiddleBigEndian) PutUint32(b []byte, v uint32) {
+	binary.BigEndian.PutUint32(b, v)
+}
+
+func (m *MiddleBigEndian) PutUint64(b []byte, v uint64) {
+	binary.BigEndian.PutUint64(b, v)
+}
+
+func (m *MiddleBigEndian) String() string {
+	return "middle big endian"
 }

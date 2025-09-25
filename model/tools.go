@@ -6,6 +6,7 @@ const (
 	NATIVE_ENDIAN = BYTE_ORDER(iota)
 	BIG_ENDIAN
 	LITTLE_ENDIAN
+	MIDDLE_ENDIAN // crappy old stuff
 )
 
 type BYTE_ORDER byte
@@ -31,6 +32,8 @@ func ByteOrderAndSigned(txt string) (BYTE_ORDER, string) {
 		return BIG_ENDIAN, txt[2:]
 	case strings.HasPrefix(txt, "le"):
 		return LITTLE_ENDIAN, txt[2:]
+	case strings.HasPrefix(txt, "me"):
+		return MIDDLE_ENDIAN, txt[2:]
 	default:
 		return NATIVE_ENDIAN, txt
 	}
