@@ -21,6 +21,9 @@ const (
 	STRING_OPTIONS_TRIMMED                = StringOptions(0b1 << 7)
 	REGEX_OPTIONS_OFFSET_START            = StringOptions(0b1 << 8)
 	PSTRING_OPTIONS_SIZE_INCLUDE          = StringOptions(0b1 << 9)
+	REGEX_OPTIONS_CASE_INSENSITIVE        = StringOptions(0b1 << 10)
+	REGEX_OPTIONS_UPDATE_OFFSET           = StringOptions(0b1 << 11)
+	REGEX_OPTIONS_LINES                   = StringOptions(0b1 << 12)
 )
 
 type Type struct {
@@ -35,8 +38,8 @@ type Type struct {
 	// when root == "string" or "search"
 	StringOptions StringOptions
 	// when root == "search"
-	SearchRange int
-	SearchCount int
+	StringIntOption int
+	SearchCount     int
 }
 
 var Types map[string]TypeFamily
