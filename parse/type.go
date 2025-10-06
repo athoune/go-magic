@@ -82,13 +82,33 @@ func ParseType(line string) (*model.Type, error) {
 				return nil, err
 			}
 		}
-	case "string", "string16", "regex", "search":
+	case "string", "string16", "search":
 		/*
 		 */
 		t.StringOptions, t.StringIntOption, err = parseOptions(t.FilterStringArgument)
 		if err != nil {
 			return nil, err
 		}
+	case "regex":
+		var raw string
+		t.StringIntOption, raw, err = splitSearchStringOptions(t.FilterStringArgument)
+		if err != nil {
+			return nil, err
+		}
+		options, err := readRegexOptions(raw)
+		if err != nil {
+			u, ok := err.(*UnknownStringOption)
+			if ok {
+				opt, _, err := parseOptions(u.Options)
+				if err != nil {
+					return nil, err
+				}
+				t.StringOptions |= opt
+			} else {
+				return nil, err
+			}
+		}
+		t.StringOptions |= options
 	case "msdostime":
 	case "msdosdate", "date", "qdate":
 	case "guid":
@@ -172,6 +192,27 @@ func splitSearchStringOptions(stringOptionsRaw string) (int, string, error) {
 	default:
 		return -1, "", fmt.Errorf("this StringOptions has too many elements: %v", slugs)
 	}
+}
+
+func readRegexOptions(stringOptionsRaw string) (model.StringOptions, error) {
+	stringOptions := model.STRING_OPTIONS_NONE
+	var unknown strings.Builder
+	for _, option := range stringOptionsRaw {
+		switch option {
+		case 'c':
+			stringOptions |= model.REGEX_OPTIONS_CASE_INSENSITIVE
+		case 's':
+			stringOptions |= model.REGEX_OPTIONS_OFFSET_START
+		case 'l':
+			stringOptions |= model.REGEX_OPTIONS_LINES
+		default:
+			unknown.WriteRune(option)
+		}
+	}
+	if unknown.Len() == 0 {
+		return stringOptions, nil
+	}
+	return stringOptions, &UnknownStringOption{unknown.String()}
 }
 
 func readStringOptions(stringOptionsRaw string) (model.StringOptions, error) {

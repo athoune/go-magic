@@ -12,6 +12,15 @@ func TestParseTypeFilter(t *testing.T) {
 		line     string
 		expected *model.Type
 	}{
+		{`regex/1l`, &model.Type{
+			Name:                 "regex",
+			Root:                 "regex",
+			StringIntOption:      1,
+			FilterOperator:       byte('/'),
+			FilterStringArgument: "1l",
+			StringOptions:        model.REGEX_OPTIONS_LINES,
+			TypeFamily:           model.TYPE_FAMILY_STRING,
+		}},
 		{`belong&0xfe00f0f0`, &model.Type{
 			Name:                 "belong",
 			Root:                 "long",
@@ -33,8 +42,8 @@ func TestParseTypeFilter(t *testing.T) {
 		}},
 	} {
 		typ, err := ParseType(fixture.line)
-		assert.NoError(t, err)
-		assert.Equal(t, fixture.expected, typ)
+		assert.NoError(t, err, fixture.line)
+		assert.Equal(t, fixture.expected, typ, fixture.line)
 	}
 }
 
