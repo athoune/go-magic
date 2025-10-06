@@ -12,10 +12,6 @@ func TestParseLine(t *testing.T) {
 		line    string
 		Compare *model.Compare
 	}{
-		/*
-			{`>>12	indirect/r	x`, &model.Compare{
-
-			}},*/
 		{`>0x04	byte	>-1	version %d.`, &model.Compare{
 			Comparator:  '>',
 			RawExpected: "-1",
@@ -29,8 +25,24 @@ func TestParseLine(t *testing.T) {
 				TypeFamily: model.TYPE_FAMILY_INT,
 			},
 		}},
-		{`>0x18	lemsdostime	x				%s`, &model.Compare{}},
-		{`>16	medate		x		\b, modified %s`, &model.Compare{}},
+		{`>0x18	lemsdostime	x				%s`, &model.Compare{
+			X: true,
+			Type: &model.Type{
+				Name:       "lemsdostime",
+				Root:       "msdostime",
+				TypeFamily: model.TYPE_FAMILY_STRING,
+				ByteOrder:  model.LITTLE_ENDIAN,
+			},
+		}},
+		{`>16	medate		x		\b, modified %s`, &model.Compare{
+			X: true,
+			Type: &model.Type{
+				Name:       "medate",
+				Root:       "date",
+				ByteOrder:  model.MIDDLE_ENDIAN,
+				TypeFamily: model.TYPE_FAMILY_STRING,
+			},
+		}},
 		{`>>>1044	search		Version=	\b, version`, &model.Compare{
 			Comparator:  '=',
 			RawExpected: "Version=",
