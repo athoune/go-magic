@@ -20,6 +20,7 @@ const (
 	STRING_OPTIONS_BINARY_FILE            = StringOptions(0b1 << 6)
 	STRING_OPTIONS_TRIMMED                = StringOptions(0b1 << 7)
 	REGEX_OPTIONS_OFFSET_START            = StringOptions(0b1 << 8)
+	PSTRING_OPTIONS_SIZE_INCLUDE          = StringOptions(0b1 << 9)
 )
 
 type Type struct {
