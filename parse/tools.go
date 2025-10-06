@@ -4,6 +4,8 @@ import (
 	"unicode"
 )
 
+var OPERATIONS = []byte("=><&^~")
+
 // HandleSpaceEscape line is closed by some spaces, but it handles escape : "\ "
 func HandleSpaceEscape(line string) int {
 	end := 0

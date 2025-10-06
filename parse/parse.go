@@ -11,8 +11,6 @@ import (
 	"github.com/athoune/go-magic/model"
 )
 
-var OPERATIONS = []byte("=><&^~")
-
 var spaces_re *regexp.Regexp
 var dynamic_value_re *regexp.Regexp
 
