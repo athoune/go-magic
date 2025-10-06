@@ -19,6 +19,11 @@ var type_dynamic_idx int
 var operator_dynamic_idx int
 var arg_dynamic_idx int
 
+var BAD_BOYS = []string{
+	"ulelong	>-1",
+	"ulelong		-1",
+}
+
 func init() {
 	spaces_re = regexp.MustCompile(`\s+`)
 
@@ -70,6 +75,18 @@ func Parse(r io.Reader, file *model.File) (int, error) {
 			continue
 		}
 		if line[0] == '#' { // comment
+			continue
+		}
+
+		cursed := false
+		for _, bad := range BAD_BOYS {
+			if strings.Contains(line, bad) {
+				cursed = true
+				break
+			}
+		}
+		if cursed {
+			fmt.Printf("This line is cursed: %s\n", line)
 			continue
 		}
 		if strings.HasPrefix(line, "!:") {
