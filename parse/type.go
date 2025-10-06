@@ -31,9 +31,13 @@ func ParseType(line string) (*model.Type, error) {
 		t.Name = line
 	}
 	var ok bool
-	t.ByteOrder, t.Root = model.ByteOrderAndSigned(t.Name)
+	var signed bool
+	t.ByteOrder, signed, t.Root = model.ByteOrderAndSigned(t.Name)
 	if t.TypeFamily, ok = model.Types[t.Root]; !ok {
-		return nil, fmt.Errorf("unknown type [%v]", t.Name)
+		return nil, fmt.Errorf("unknown root name type: %v", t.Name)
+	}
+	if t.TypeFamily == model.TYPE_FAMILY_INT && !signed {
+		t.TypeFamily = model.TYPE_FAMILY_UINT
 	}
 	switch t.Root {
 	case "indirect":

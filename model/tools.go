@@ -15,26 +15,25 @@ type BYTE_ORDER byte
 ByteOrderAndSigned use name convention with txt input and
 return signed/unsigned, byte order, and root name
 */
-func ByteOrderAndSigned(txt string) (BYTE_ORDER, string) {
-	for _, n := range []string{"name", "use"} { // something like label/goto
-		if txt == n {
-			return NATIVE_ENDIAN, txt
-		}
-	}
+func ByteOrderAndSigned(txt string) (BYTE_ORDER, bool, string) {
 	switch {
+	case txt == "use": // it's not an unsigned 'se'
+		return NATIVE_ENDIAN, false, txt
 	case strings.HasPrefix(txt, "ube"):
-		return BIG_ENDIAN, "u" + txt[3:]
+		return BIG_ENDIAN, false, txt[3:]
 	case strings.HasPrefix(txt, "ule"):
-		return LITTLE_ENDIAN, "u" + txt[3:]
+		return LITTLE_ENDIAN, false, txt[3:]
+	case strings.HasPrefix(txt, "ube"):
+		return BIG_ENDIAN, false, txt[3:]
 	case strings.HasPrefix(txt, "u"):
-		return NATIVE_ENDIAN, txt
+		return NATIVE_ENDIAN, false, txt[1:]
 	case strings.HasPrefix(txt, "be"):
-		return BIG_ENDIAN, txt[2:]
+		return BIG_ENDIAN, true, txt[2:]
 	case strings.HasPrefix(txt, "le"):
-		return LITTLE_ENDIAN, txt[2:]
+		return LITTLE_ENDIAN, true, txt[2:]
 	case strings.HasPrefix(txt, "me"):
-		return MIDDLE_ENDIAN, txt[2:]
+		return MIDDLE_ENDIAN, true, txt[2:]
 	default:
-		return NATIVE_ENDIAN, txt
+		return NATIVE_ENDIAN, true, txt
 	}
 }
