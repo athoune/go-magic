@@ -111,7 +111,7 @@ func ParseType(line string) (*model.Type, error) {
 		}
 		t.StringOptions |= options
 	case "msdostime":
-	case "msdosdate", "date", "qdate", "qldate", "ldate":
+	case "msdosdate", "date", "qdate", "qldate", "ldate", "qwdate":
 	case "guid":
 	case "byte", "short", "long", "quad", "float", "double", "4", "8":
 		if t.FilterOperator != 0 {
