@@ -14,6 +14,17 @@ func TestParseCompare(t *testing.T) {
 		size    int
 		compare *model.Compare
 	}{
+		{">-1", &model.Type{
+			TypeFamily: model.TYPE_FAMILY_INT,
+			Root:       "byte",
+		}, 3, &model.Compare{
+			Comparator:  COMPARE_GREATER,
+			RawExpected: "-1",
+			Expected: &model.Value{
+				Family:   model.TYPE_FAMILY_INT,
+				IntValue: -1,
+			},
+		}},
 		{"<10", &model.Type{
 			TypeFamily: model.TYPE_FAMILY_INT,
 			Root:       "long",
