@@ -16,9 +16,21 @@ func TestParseLine(t *testing.T) {
 			{`>>12	indirect/r	x`, &model.Compare{
 
 			}},*/
-		{`>16	medate		x		\b, modified %s`, &model.Compare{
-			Comparator: '=',
+		{`>0x04	byte	>-1	version %d.`, &model.Compare{
+			Comparator:  '>',
+			RawExpected: "-1",
+			Expected: &model.Value{
+				Family:   model.TYPE_FAMILY_INT,
+				IntValue: -1,
+			},
+			Type: &model.Type{
+				Name:       "byte",
+				Root:       "byte",
+				TypeFamily: model.TYPE_FAMILY_INT,
+			},
 		}},
+		{`>0x18	lemsdostime	x				%s`, &model.Compare{}},
+		{`>16	medate		x		\b, modified %s`, &model.Compare{}},
 		{`>>>1044	search		Version=	\b, version`, &model.Compare{
 			Comparator:  '=',
 			RawExpected: "Version=",
@@ -27,11 +39,11 @@ func TestParseLine(t *testing.T) {
 				StringValue: "Version=",
 			},
 			Type: &model.Type{
-				TypeFamily:    model.TYPE_FAMILY_STRING,
-				SearchRange:   0,
-				StringOptions: 0,
-				Root:          "search",
-				Name:          "search",
+				TypeFamily:      model.TYPE_FAMILY_STRING,
+				StringIntOption: 0,
+				StringOptions:   0,
+				Root:            "search",
+				Name:            "search",
 			},
 		}},
 		{`0	bequad	0xB7D800203749DA11`, &model.Compare{
@@ -88,7 +100,7 @@ func TestParseLine(t *testing.T) {
 			},
 			Type: &model.Type{
 				Name:       "ubyte",
-				Root:       "ubyte",
+				Root:       "byte",
 				TypeFamily: model.TYPE_FAMILY_UINT,
 			},
 		}},
@@ -170,7 +182,7 @@ func TestParseLine(t *testing.T) {
 				TypeFamily:           model.TYPE_FAMILY_STRING,
 				FilterOperator:       '/',
 				FilterStringArgument: "8192",
-				SearchRange:          8192,
+				StringIntOption:      8192,
 			},
 		}},
 		{`>>>>>>&8	ubelong%44100	0`, &model.Compare{
@@ -182,7 +194,7 @@ func TestParseLine(t *testing.T) {
 			},
 			Type: &model.Type{
 				Name:                 "ubelong",
-				Root:                 "ulong",
+				Root:                 "long",
 				ByteOrder:            model.BIG_ENDIAN,
 				TypeFamily:           model.TYPE_FAMILY_UINT,
 				FilterOperator:       '%',
@@ -199,7 +211,7 @@ func TestParseLine(t *testing.T) {
 			},
 			Type: &model.Type{
 				Name:                 "ubyte",
-				Root:                 "ubyte",
+				Root:                 "byte",
 				TypeFamily:           model.TYPE_FAMILY_UINT,
 				FilterOperator:       '/',
 				FilterBinaryArgument: 4,
@@ -325,7 +337,7 @@ func TestParseLine(t *testing.T) {
 				},
 				Type: &model.Type{
 					Name:       "ubequad",
-					Root:       "uquad",
+					Root:       "quad",
 					ByteOrder:  model.BIG_ENDIAN,
 					TypeFamily: model.TYPE_FAMILY_UINT,
 				},
@@ -334,7 +346,7 @@ func TestParseLine(t *testing.T) {
 			X: true,
 			Type: &model.Type{
 				Name:                 "ubyte",
-				Root:                 "ubyte",
+				Root:                 "byte",
 				TypeFamily:           model.TYPE_FAMILY_UINT,
 				FilterOperator:       '^',
 				FilterBinaryArgument: 0x65,
@@ -379,7 +391,7 @@ func TestParseLine(t *testing.T) {
 			},
 			Type: &model.Type{
 				Name:       "ulelong",
-				Root:       "ulong",
+				Root:       "long",
 				ByteOrder:  model.LITTLE_ENDIAN,
 				TypeFamily: model.TYPE_FAMILY_UINT,
 			},
