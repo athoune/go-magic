@@ -120,9 +120,13 @@ func (t *TestResult) action(a *model.Action) error {
 // offset seeks the target to the absolute offset
 func (t *TestResult) offset() {
 	if t.test.Offset.Relative {
-		// TODO
+		// Relative offset: add to current position
+		_, _ = t.target.Seek(t.test.Offset.Value, io.SeekCurrent)
+		if t.test.Offset.Dynamic {
+			// TODO: handle dynamic relative offsets
+		}
 	} else {
-		t.target.Seek(t.test.Offset.Value, io.SeekStart)
+		_, _ = t.target.Seek(t.test.Offset.Value, io.SeekStart)
 	}
 }
 
