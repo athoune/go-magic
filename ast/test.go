@@ -31,6 +31,7 @@ type TestResult struct {
 	Mime     string
 	Ext      string
 	Apple    string // Apple type for Mac OS 9 and older
+	readValue *model.Value // actual value read from file during compare
 }
 
 func NewTestResult(test *model.Test, named map[string]*model.Test, output io.Writer) *TestResult {
@@ -42,9 +43,11 @@ func NewTestResult(test *model.Test, named map[string]*model.Test, output io.Wri
 }
 
 func (t *TestResult) Test(target io.ReadSeeker) (bool, error) {
-	_, err := target.Seek(0, io.SeekStart)
-	if err != nil {
-		return false, err
+	if t.test.Offset.Level == 0 {
+		_, err := target.Seek(0, io.SeekStart)
+		if err != nil {
+			return false, err
+		}
 	}
 	t.target = target
 	t.offset() // Move the cursor
@@ -113,12 +116,12 @@ func (t *TestResult) action(a *model.Action) error {
 	return nil
 }
 
-// offset seeks the target
+// offset seeks the target to the absolute offset
 func (t *TestResult) offset() {
 	if t.test.Offset.Relative {
 		// TODO
 	} else {
-		t.target.Seek(t.test.Offset.Value, io.SeekCurrent)
+		t.target.Seek(t.test.Offset.Value, io.SeekStart)
 	}
 }
 
@@ -141,6 +144,7 @@ func (t *TestResult) compare() (bool, bool, error) {
 	if err != nil {
 		return false, false, err
 	}
+	t.readValue = value
 	if t.test.Compare.X {
 		/*err = t.message()
 		if err != nil {
@@ -185,10 +189,21 @@ func (t *TestResult) message() error {
 	}
 	// [FIXME] is it Type value ?!
 	switch t.test.Type.TypeFamily {
-	case model.TYPE_FAMILY_INT:
-		_, err := fmt.Fprintf(t.output,
-			t.test.Message.Value,
-			t.test.Type.FilterBinaryArgument)
+	case model.TYPE_FAMILY_INT, model.TYPE_FAMILY_UINT, model.TYPE_FAMILY_FLOAT:
+		var arg interface{}
+		if t.readValue != nil {
+			switch t.test.Type.TypeFamily {
+			case model.TYPE_FAMILY_INT:
+				arg = t.readValue.IntValue
+			case model.TYPE_FAMILY_UINT:
+				arg = t.readValue.UIntValue
+			case model.TYPE_FAMILY_FLOAT:
+				arg = t.readValue.FloatValue
+			}
+		} else {
+			arg = t.test.Type.FilterBinaryArgument
+		}
+		_, err := fmt.Fprintf(t.output, t.test.Message.Value, arg)
 		return err
 	case model.TYPE_FAMILY_STRING:
 		_, err := fmt.Fprintf(t.output,

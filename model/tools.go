@@ -19,12 +19,12 @@ func ByteOrderAndSigned(txt string) (BYTE_ORDER, bool, string) {
 	switch {
 	case txt == "use": // it's not an unsigned 'se'
 		return NATIVE_ENDIAN, false, txt
+	case txt == "string": // not a numeric type, signedness doesn't apply
+		return NATIVE_ENDIAN, false, txt
 	case strings.HasPrefix(txt, "ube"):
 		return BIG_ENDIAN, false, txt[3:]
 	case strings.HasPrefix(txt, "ule"):
 		return LITTLE_ENDIAN, false, txt[3:]
-	case strings.HasPrefix(txt, "ube"):
-		return BIG_ENDIAN, false, txt[3:]
 	case strings.HasPrefix(txt, "u"):
 		return NATIVE_ENDIAN, false, txt[1:]
 	case strings.HasPrefix(txt, "be"):

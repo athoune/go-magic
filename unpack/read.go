@@ -8,6 +8,8 @@ import (
 	"github.com/athoune/go-magic/model"
 )
 
+const MAXstring = 128 // max len of "string" types, matches C file.h
+
 func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 	bo := ModelByteOrderToBinaryByteOrder(typ.ByteOrder)
 
@@ -91,6 +93,15 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 		}
 		v.RawBinaryValue = uint64(v.IntValue)
 		return v, size, err
+	case model.TYPE_FAMILY_STRING:
+		// Read up to MAXstring bytes from the reader, like C's file_getbuffer
+		buf := make([]byte, MAXstring)
+		n, err := io.ReadAtLeast(r, buf, 1)
+		if err != nil && err != io.ErrUnexpectedEOF {
+			return nil, 0, fmt.Errorf("string read: %w", err)
+		}
+		v.StringValue = string(buf[:n])
+		return v, n, nil
 	default:
 		return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
 	}

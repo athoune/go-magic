@@ -50,7 +50,7 @@ func TestKittyWithTests(t *testing.T) {
 	assert.False(t, tr.test.Message.IsTemplate)
 	for i := range 2 {
 		sub := tr.test.SubTests[0].SubTests[i]
-		assert.True(t, sub.Type.FilterBinaryArgument != 0)
+		assert.Equal(t, uint64(0), sub.Type.FilterBinaryArgument)
 		assert.True(t, sub.Message.IsTemplate, sub.Raw)
 	}
 	assert.Equal(t, ", JFIF standard 1.01", output.String())
