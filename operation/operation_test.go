@@ -3,6 +3,7 @@ package operation
 import (
 	"testing"
 
+	"github.com/athoune/go-magic/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,9 +20,33 @@ func TestCompareString(t *testing.T) {
 		{"hello", "hello", true},                // no null terminator
 		{"", "\x00", true},                      // empty file vs single null
 	} {
-		v, err := CompareString(fixture.file, fixture.pattern, '=')
+		v, err := CompareString(fixture.file, fixture.pattern, '=', model.STRING_OPTIONS_NONE)
 		assert.NoError(t, err)
 		assert.Equal(t, fixture.match, v, "case %d: file=%q pattern=%q", i, fixture.file, fixture.pattern)
+	}
+}
+
+func TestCompareStringFlags(t *testing.T) {
+	for i, fixture := range []struct {
+		file    string
+		pattern string
+		opts    model.StringOptions
+		match   bool
+	}{
+		// /c ignore lowercase: file lowercase matches any case in pattern
+		{"hello", "HELLO", model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER, true},
+		{"HELLO", "hello", model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER, false},
+		// /C ignore uppercase: file uppercase matches any case in pattern
+		{"HELLO", "hello", model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER, true},
+		{"hello", "HELLO", model.STRING_OPTIONS_CASE_INSENSITIVE_UPPER, false},
+		// /f full word: match only if followed by space or end of string
+		{"hello", "hello", model.STRING_OPTIONS_FULL_WORD, true},
+		{"helloworld", "hello", model.STRING_OPTIONS_FULL_WORD, false},
+		{"hello world", "hello", model.STRING_OPTIONS_FULL_WORD, true},
+	} {
+		v, err := CompareString(fixture.file, fixture.pattern, '=', fixture.opts)
+		assert.NoError(t, err)
+		assert.Equal(t, fixture.match, v, "case %d: opts=%d file=%q pattern=%q", i, fixture.opts, fixture.file, fixture.pattern)
 	}
 }
 

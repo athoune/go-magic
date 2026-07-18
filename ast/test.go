@@ -172,7 +172,8 @@ func (t *TestResult) compare() (bool, bool, error) {
 	case model.TYPE_FAMILY_STRING:
 		ok, err = operation.CompareString(value.StringValue,
 			t.test.Compare.Expected.StringValue,
-			t.test.Compare.Comparator)
+			t.test.Compare.Comparator,
+			t.test.Type.StringOptions)
 	}
 
 	/*err = t.message()
