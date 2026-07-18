@@ -46,7 +46,6 @@ type Type struct {
 var Types map[string]TypeFamily
 
 func init() {
-	// [FIXME] use type shortener
 	Types = map[string]TypeFamily{
 		"byte":        TYPE_FAMILY_INT,
 		"short":       TYPE_FAMILY_INT,
