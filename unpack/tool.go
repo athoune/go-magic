@@ -33,12 +33,10 @@ func ModelByteOrderToBinaryByteOrder(bo model.BYTE_ORDER) binary.ByteOrder {
 func HandleNumberSuffix(raw string) string {
 	if strings.HasSuffix(raw, "h") ||
 		strings.HasSuffix(raw, "L") {
-		/*
-			[FIXME]
-			What the hell are this letters ?!
-			 >>15	ulelong		!0x00010000h	\b, version %#8.8
-			 0	lelong		0x1b031336L	Netboot image,
-		*/
+		// C libmagic historically accepts 'h' and 'L' suffixes on
+		// numeric literals (e.g. 0x00010000h, 0x1b031336L). They are
+		// not size modifiers here; the type is determined by the column.
+		// We strip them and parse the remaining digits.
 		return raw[:len(raw)-1]
 	}
 	return raw
