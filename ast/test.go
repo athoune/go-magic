@@ -211,7 +211,8 @@ func (t *TestResult) message() error {
 		_, err := t.output.Write([]byte(t.test.Message.Value))
 		return err
 	}
-	// [FIXME] is it Type value ?!
+	// Use the actual value read from the file for formatting; fall back to
+	// the type's filter argument only when no value was read (e.g., x test).
 	switch t.test.Type.TypeFamily {
 	case model.TYPE_FAMILY_INT, model.TYPE_FAMILY_UINT, model.TYPE_FAMILY_FLOAT:
 		var arg interface{}
