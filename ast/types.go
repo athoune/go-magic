@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func ReadPstring(r io.Reader, options string) (string, error) {
+func ReadPString(r io.Reader, options string) (string, error) {
 	if len(options) > 2 {
 		return "", fmt.Errorf("arguments parameter is too long: %v", len(options))
 	}

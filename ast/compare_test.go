@@ -1,4 +1,4 @@
-package compare
+package ast
 
 import (
 	"testing"
@@ -9,10 +9,10 @@ import (
 
 func TestInt(t *testing.T) {
 	ok, err := CompareValues(&model.Value{
-		Family:   model.TYPE_CLUE_INT,
+		Family:   model.TYPE_FAMILY_INT,
 		IntValue: 12,
 	}, &model.Value{
-		Family:   model.TYPE_CLUE_INT,
+		Family:   model.TYPE_FAMILY_INT,
 		IntValue: 42,
 	}, '<')
 	assert.NoError(t, err)

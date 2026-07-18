@@ -13,11 +13,17 @@ See https://www.darwinsys.com/file/
 ## TODO
 
 * [x] parse all the magic files
-* [ ] handle tests hierarchy
-* [ ] read values (little endian, big endian…)
-* [ ] handle simple comparator
+* [x] handle tests hierarchy
+* [x] read values (little endian, big endian…)
+* [x] handle simple comparator
 * [ ] serialize parsed files
 * [ ] handle complex comparator
 * [ ] handle strange commands
 * [ ] functional tests with files available on my laptop
 * [ ] is it fast enough ?
+
+## Developer tips
+
+* The **file** project was started the same year of the **Predator** movie. There is no weird parts in the project, just antediluvian parts. 
+* `man magic` is not complete, you have to read the BNF file.
+

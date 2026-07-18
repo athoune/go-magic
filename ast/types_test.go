@@ -21,7 +21,7 @@ func TestReadPString(t *testing.T) {
 		{[]byte{4 + 1, 'p', 'l', 'o', 'p'}, "BJ", "plop"},
 	} {
 		r := bytes.NewReader(fixture.content)
-		v, err := ReadPstring(r, fixture.options)
+		v, err := ReadPString(r, fixture.options)
 		assert.NoError(t, err)
 		assert.Equal(t, fixture.expected, v, fixture)
 	}

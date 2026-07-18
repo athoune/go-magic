@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTests(t *testing.T) {
+func TestTestsWithKitty(t *testing.T) {
 	f_rules, err := os.Open("../file/magic/Magdir/jpeg")
 	assert.NoError(t, err)
 	file := model.NewFile()
@@ -27,6 +27,7 @@ func TestTests(t *testing.T) {
 	for _, tt := range file.Tests {
 		output := &strings.Builder{}
 		test := NewTestResult(tt, file.Names, output)
+		fmt.Println(test.test.Raw)
 		ok, err := test.Test(f_test)
 		assert.NoError(t, err, file.Names)
 		msg := output.String()

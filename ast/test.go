@@ -1,12 +1,14 @@
 package ast
 
 import (
-	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
 
 	"github.com/athoune/go-magic/model"
+	"github.com/athoune/go-magic/operation"
+	"github.com/athoune/go-magic/unpack"
 )
 
 var SIZES map[string]int
@@ -45,15 +47,15 @@ func (t *TestResult) Test(target io.ReadSeeker) (bool, error) {
 		return false, err
 	}
 	t.target = target
-	t.offset()
+	t.offset() // Move the cursor
 	c, _, err := t.compare()
 	if err != nil {
 		return false, err
 	}
 	if t.test.Type.Name == "use" {
-		namedTest, ok := t.named[t.test.Compare.StringValue]
+		namedTest, ok := t.named[t.test.Compare.RawExpected]
 		if !ok {
-			return false, fmt.Errorf("unknown name: '%s'", t.test.Compare.StringValue)
+			return false, fmt.Errorf("unknown name: '%s'", t.test.Compare.RawExpected)
 		}
 		_, err = NewTestResult(namedTest, t.named, t.output).Test(target)
 		if err != nil {
@@ -61,6 +63,10 @@ func (t *TestResult) Test(target io.ReadSeeker) (bool, error) {
 		}
 	}
 	if c {
+		err = t.message()
+		if err != nil {
+			return false, err
+		}
 		for _, action := range t.test.Actions {
 			err = t.action(action)
 			if err != nil {
@@ -97,17 +103,9 @@ func (t *TestResult) action(a *model.Action) error {
 		if err != nil {
 			return err
 		}
-		switch operator {
-		case '+':
-			t.Strength = t.Strength + value
-		case '-':
-			t.Strength = t.Strength - value
-		case '*':
-			t.Strength = t.Strength * value
-		case '/':
-			t.Strength = t.Strength / value
-		default:
-			return fmt.Errorf("strength action: unknown operator '%v' in '%s'", operator, a.Arg)
+		t.Strength, err = operation.Operate(t.Strength, value, operator)
+		if err != nil {
+			return err
 		}
 	default:
 		return fmt.Errorf("action: unknown action '%v'", a.Name)
@@ -126,76 +124,78 @@ func (t *TestResult) offset() {
 
 // compare return compare result, is special and error
 func (t *TestResult) compare() (bool, bool, error) {
-	signed, byteOrder, typ := model.EndianessSigned(t.test.Type.Name)
-
-	var bo binary.ByteOrder
-	switch byteOrder {
-	case model.BIG_ENDIAN:
-		bo = binary.BigEndian
-	case model.LITTLE_ENDIAN:
-		bo = binary.LittleEndian
-	default:
-		bo = binary.NativeEndian
-	}
-
-	size, ok := SIZES[typ]
-
-	if !ok {
-		switch typ {
-		case "string":
-			size = len(t.test.Compare.StringValue)
-		case "search":
-			size = len(t.test.Compare.StringValue)
-		}
-	}
-	buff := make([]byte, size)
-	_, err := t.target.Read(buff)
-	if err != nil {
-		return false, false, err
-	}
-
-	switch typ { // All the special cases
+	switch t.test.Type.Name { // All the special cases
 	case "name":
 		// Like a LABEL
 		return true, true, nil
 	case "use":
 		// It's just a GOTO
 		return false, true, nil
-	case "search":
-		return false, true, nil
+	case "search": // [FIXME]
+		return false, true, errors.ErrUnsupported
+	case "regex": // [FIXME]
+		return false, true, errors.ErrUnsupported
 	}
 
-	cmp, ok := TYPE_COMPARATORS[typ]
-	if !ok {
-		return false, false, fmt.Errorf("unknown type: %v in `%s`", typ, t.test.Raw)
+	value, _, err := unpack.ReadValue(t.test.Type, t.target)
+	if err != nil {
+		return false, false, err
 	}
-	return cmp.compare(buff, bo, signed, t.test.Type, t.test.Compare)
-}
+	if t.test.Compare.X {
+		/*err = t.message()
+		if err != nil {
+			return false, false, err
+		}*/
+		return true, false, nil
+	}
 
-func operation[V int64 | uint64](current, expected V, operation byte) bool {
-	switch operation {
-	case '=':
-		return current == expected
+	FilterValue(t.test.Type, value)
+
+	var ok bool
+	switch t.test.Type.TypeFamily {
+	case model.TYPE_FAMILY_INT:
+		ok, err = operation.CompareNumbers(value.IntValue,
+			t.test.Compare.Expected.IntValue,
+			t.test.Compare.Comparator)
+	case model.TYPE_FAMILY_UINT:
+		ok, err = operation.CompareNumbers(value.UIntValue,
+			t.test.Compare.Expected.UIntValue,
+			t.test.Compare.Comparator)
+	case model.TYPE_FAMILY_FLOAT:
+		ok, err = operation.CompareNumbers(value.FloatValue,
+			t.test.Compare.Expected.FloatValue,
+			t.test.Compare.Comparator)
+	case model.TYPE_FAMILY_STRING:
+		ok, err = operation.CompareString(value.StringValue,
+			t.test.Compare.Expected.StringValue,
+			t.test.Compare.Comparator)
 	}
-	return false
+
+	/*err = t.message()
+	if err != nil {
+		return false, false, err
+	}*/
+	return ok, false, err
 }
 
 func (t *TestResult) message() error {
-	if t.test.Message.IsDisplayable {
-		if !t.test.Message.IsTemplate {
-			_, err := t.output.Write([]byte(t.test.Message.Value))
-			return err
-		}
-		switch t.test.Type.Clue_ {
-		case model.TYPE_CLUE_INT:
-			_, err := fmt.Fprintf(t.output, t.test.Message.Value, t.test.Compare.IntValue)
-			return err
-		case model.TYPE_CLUE_STRING:
-			_, err := fmt.Fprintf(t.output, t.test.Message.Value, t.test.Compare.StringValue)
-			return err
-		default:
-			return fmt.Errorf("unknown type for info: '%v'", t.test.Type.Clue_)
-		}
+	if !t.test.Message.IsTemplate {
+		_, err := t.output.Write([]byte(t.test.Message.Value))
+		return err
 	}
-	return false
+	// [FIXME] is it Type value ?!
+	switch t.test.Type.TypeFamily {
+	case model.TYPE_FAMILY_INT:
+		_, err := fmt.Fprintf(t.output,
+			t.test.Message.Value,
+			t.test.Type.FilterBinaryArgument)
+		return err
+	case model.TYPE_FAMILY_STRING:
+		_, err := fmt.Fprintf(t.output,
+			t.test.Message.Value,
+			t.test.Type.FilterBinaryArgument)
+		return err
+	default:
+		return fmt.Errorf("unknown type for info: '%v'", t.test.Type.TypeFamily)
+	}
 }
