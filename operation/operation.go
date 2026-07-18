@@ -26,6 +26,4 @@ func Operate[v int | int64 | uint64](a, b v, operator byte) (v, error) {
 	return v(0), fmt.Errorf("unknown operator: %v", operator)
 }
 
-func OperateString(a, arg string, operator byte) (string, error) {
-	return a, nil // [FIXME]
-}
+
