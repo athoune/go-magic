@@ -8,7 +8,7 @@ import (
 	"github.com/athoune/go-magic/model"
 )
 
-// = > < & ^ ~
+// CompareNumbers handles numeric relations: = < >
 func CompareNumbers[K int64 | uint64 | float64](a, b K, comparator byte) (bool, error) {
 	switch comparator {
 	case '=':
@@ -18,7 +18,20 @@ func CompareNumbers[K int64 | uint64 | float64](a, b K, comparator byte) (bool, 
 	case '>':
 		return a > b, nil
 	default:
-		return false, fmt.Errorf("unknown comparator: %v", comparator)
+		return false, fmt.Errorf("unknown numeric comparator: %v", comparator)
+	}
+}
+
+// CompareBits handles bitwise masking relations: & ^
+// C semantics: & means (v & mask) == mask; ^ means (v & mask) != mask.
+func CompareBits(a, b uint64, comparator byte) (bool, error) {
+	switch comparator {
+	case '&':
+		return (a & b) == b, nil
+	case '^':
+		return (a & b) != b, nil
+	default:
+		return false, fmt.Errorf("unknown bits comparator: %v", comparator)
 	}
 }
 

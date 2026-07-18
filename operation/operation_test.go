@@ -58,6 +58,34 @@ func TestCompareStringFlags(t *testing.T) {
 	}
 }
 
+func TestCompareBits(t *testing.T) {
+	for i, fixture := range []struct {
+		value     uint64
+		mask      uint64
+		operator  byte
+		match     bool
+	}{
+		// & : all mask bits must be present in value
+		{0b1111, 0b0011, '&', true},
+		{0b1100, 0b0011, '&', false},
+		{0b1010, 0b1010, '&', true},
+		{0b1010, 0b0101, '&', false},
+		{0xFF, 0x0F, '&', true},
+		{0x0F, 0xFF, '&', false},
+		// ^ : at least one mask bit must be missing from value
+		{0b1111, 0b0011, '^', false},
+		{0b1100, 0b0011, '^', true},
+		{0b1010, 0b1010, '^', false},
+		{0b1010, 0b0101, '^', true},
+		{0xFF, 0x0F, '^', false},
+		{0x0F, 0xFF, '^', true},
+	} {
+		v, err := CompareBits(fixture.value, fixture.mask, fixture.operator)
+		assert.NoError(t, err)
+		assert.Equal(t, fixture.match, v, "case %d: %x %c %x", i, fixture.value, fixture.operator, fixture.mask)
+	}
+}
+
 func TestOperate(t *testing.T) {
 	for i, fixture := range []struct {
 		operator byte

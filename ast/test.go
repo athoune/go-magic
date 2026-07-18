@@ -159,13 +159,25 @@ func (t *TestResult) compare() (bool, bool, error) {
 	var ok bool
 	switch t.test.Type.TypeFamily {
 	case model.TYPE_FAMILY_INT:
-		ok, err = operation.CompareNumbers(value.IntValue,
-			t.test.Compare.Expected.IntValue,
-			t.test.Compare.Comparator)
+		if t.test.Compare.Comparator == '&' || t.test.Compare.Comparator == '^' {
+			ok, err = operation.CompareBits(uint64(value.IntValue),
+				uint64(t.test.Compare.Expected.IntValue),
+				t.test.Compare.Comparator)
+		} else {
+			ok, err = operation.CompareNumbers(value.IntValue,
+				t.test.Compare.Expected.IntValue,
+				t.test.Compare.Comparator)
+		}
 	case model.TYPE_FAMILY_UINT:
-		ok, err = operation.CompareNumbers(value.UIntValue,
-			t.test.Compare.Expected.UIntValue,
-			t.test.Compare.Comparator)
+		if t.test.Compare.Comparator == '&' || t.test.Compare.Comparator == '^' {
+			ok, err = operation.CompareBits(value.UIntValue,
+				t.test.Compare.Expected.UIntValue,
+				t.test.Compare.Comparator)
+		} else {
+			ok, err = operation.CompareNumbers(value.UIntValue,
+				t.test.Compare.Expected.UIntValue,
+				t.test.Compare.Comparator)
+		}
 	case model.TYPE_FAMILY_FLOAT:
 		ok, err = operation.CompareNumbers(value.FloatValue,
 			t.test.Compare.Expected.FloatValue,
