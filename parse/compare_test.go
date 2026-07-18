@@ -102,8 +102,7 @@ func TestParseCompare(t *testing.T) {
 	} {
 		c, s, err := ParseCompare(fixture.line, fixture.type_)
 		assert.NoError(t, err)
-		// [FIXME]
-		fixture.compare.Type = fixture.type_ // yes, it's cheating
+		fixture.compare.Type = fixture.type_ // ParseCompare attaches the type, fixtures don't repeat it
 		assert.Equal(t, fixture.compare, c, fixture.line)
 		assert.Equal(t, fixture.size, s, fixture.line)
 	}
