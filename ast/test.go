@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/athoune/go-magic/model"
 	"github.com/athoune/go-magic/operation"
@@ -207,9 +208,18 @@ func (t *TestResult) message() error {
 		_, err := fmt.Fprintf(t.output, t.test.Message.Value, arg)
 		return err
 	case model.TYPE_FAMILY_STRING:
-		_, err := fmt.Fprintf(t.output,
-			t.test.Message.Value,
-			t.test.Type.FilterBinaryArgument)
+		var arg string
+		if t.test.Compare.Comparator == '=' || t.test.Compare.Comparator == '!' {
+			// C mprint: for '=' and '!' relations, print the pattern (m->value.s)
+			arg = t.test.Compare.Expected.StringValue
+		} else {
+			// C mprint: for other relations, print the file content (p->s)
+			arg = t.readValue.StringValue
+			if t.test.Type.StringOptions&model.STRING_OPTIONS_TRIMMED != 0 {
+				arg = strings.TrimSpace(arg)
+			}
+		}
+		_, err := fmt.Fprintf(t.output, t.test.Message.Value, arg)
 		return err
 	default:
 		return fmt.Errorf("unknown type for info: '%v'", t.test.Type.TypeFamily)
