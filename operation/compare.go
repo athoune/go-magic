@@ -104,13 +104,7 @@ func CompareString(a, b string, operator byte, opts model.StringOptions) (bool, 
 			a += strings.Repeat("\x00", len(b)-len(a))
 		}
 
-		var matched bool
-		if opts&model.STRING_OPTIONS_COMPACT_WITH_SPACES != 0 {
-			// TODO: implement compact whitespace matching
-			matched = a[:len(b)] == b
-		} else {
-			matched = compareStringWithFlags(a, b, opts)
-		}
+		matched := compareStringWithFlags(a, b, opts)
 
 		if matched && opts&model.STRING_OPTIONS_FULL_WORD != 0 {
 			// Check that the next character after the match is a space or end of string
