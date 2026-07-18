@@ -43,6 +43,14 @@ func TestCompareStringFlags(t *testing.T) {
 		{"hello", "hello", model.STRING_OPTIONS_FULL_WORD, true},
 		{"helloworld", "hello", model.STRING_OPTIONS_FULL_WORD, false},
 		{"hello world", "hello", model.STRING_OPTIONS_FULL_WORD, true},
+		// /w optional whitespace: file spaces are skipped, pattern spaces are required
+		{"hello world", "hello world", model.STRING_OPTIONS_COMPACT_OPTIONAL_WHITESPACE, true},
+		{"hello  world", "hello world", model.STRING_OPTIONS_COMPACT_OPTIONAL_WHITESPACE, true},
+		{"helloworld", "hello world", model.STRING_OPTIONS_COMPACT_OPTIONAL_WHITESPACE, false},
+		// /W compact whitespace: file must have space when pattern does
+		{"hello world", "hello world", model.STRING_OPTIONS_COMPACT_WITH_SPACES, true},
+		{"helloworld", "hello world", model.STRING_OPTIONS_COMPACT_WITH_SPACES, false},
+		{"hello  world", "hello world", model.STRING_OPTIONS_COMPACT_WITH_SPACES, false},
 	} {
 		v, err := CompareString(fixture.file, fixture.pattern, '=', fixture.opts)
 		assert.NoError(t, err)

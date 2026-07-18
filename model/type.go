@@ -11,19 +11,20 @@ type TypeFamily int
 type StringOptions uint16
 
 const (
-	STRING_OPTIONS_NONE                   = StringOptions(0b0)
-	STRING_OPTIONS_COMPACT_WITH_SPACES    = StringOptions(0b1 << 1)
-	STRING_OPTIONS_FULL_WORD              = StringOptions(0b1 << 2)
-	STRING_OPTIONS_CASE_INSENSITIVE_UPPER = StringOptions(0b1 << 3)
-	STRING_OPTIONS_CASE_INSENSITIVE_LOWER = StringOptions(0b1 << 4)
-	STRING_OPTIONS_TEXT_FILE              = StringOptions(0b1 << 5)
-	STRING_OPTIONS_BINARY_FILE            = StringOptions(0b1 << 6)
-	STRING_OPTIONS_TRIMMED                = StringOptions(0b1 << 7)
-	REGEX_OPTIONS_OFFSET_START            = StringOptions(0b1 << 8)
-	PSTRING_OPTIONS_SIZE_INCLUDE          = StringOptions(0b1 << 9)
-	REGEX_OPTIONS_CASE_INSENSITIVE        = StringOptions(0b1 << 10)
-	REGEX_OPTIONS_UPDATE_OFFSET           = StringOptions(0b1 << 11)
-	REGEX_OPTIONS_LINES                   = StringOptions(0b1 << 12)
+	STRING_OPTIONS_NONE                       = StringOptions(0b0)
+	STRING_OPTIONS_COMPACT_WITH_SPACES        = StringOptions(0b1 << 1)
+	STRING_OPTIONS_FULL_WORD                  = StringOptions(0b1 << 2)
+	STRING_OPTIONS_CASE_INSENSITIVE_UPPER     = StringOptions(0b1 << 3)
+	STRING_OPTIONS_CASE_INSENSITIVE_LOWER     = StringOptions(0b1 << 4)
+	STRING_OPTIONS_TEXT_FILE                  = StringOptions(0b1 << 5)
+	STRING_OPTIONS_BINARY_FILE                = StringOptions(0b1 << 6)
+	STRING_OPTIONS_TRIMMED                    = StringOptions(0b1 << 7)
+	STRING_OPTIONS_COMPACT_OPTIONAL_WHITESPACE = StringOptions(0b1 << 13)
+	REGEX_OPTIONS_OFFSET_START                = StringOptions(0b1 << 8)
+	PSTRING_OPTIONS_SIZE_INCLUDE              = StringOptions(0b1 << 9)
+	REGEX_OPTIONS_CASE_INSENSITIVE            = StringOptions(0b1 << 10)
+	REGEX_OPTIONS_UPDATE_OFFSET               = StringOptions(0b1 << 11)
+	REGEX_OPTIONS_LINES                       = StringOptions(0b1 << 12)
 )
 
 type Type struct {

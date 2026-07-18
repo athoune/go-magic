@@ -23,9 +23,45 @@ func CompareNumbers[K int64 | uint64 | float64](a, b K, comparator byte) (bool, 
 }
 
 func compareStringWithFlags(a, b string, opts model.StringOptions) bool {
-	for i := 0; i < len(b); i++ {
+	i, j := 0, 0
+	for j < len(b) {
+		// Handle compact whitespace in pattern (file may skip spaces)
+		if opts&model.STRING_OPTIONS_COMPACT_WITH_SPACES != 0 {
+			if i < len(a) && unicode.IsSpace(rune(a[i])) {
+				// File has a space; pattern must have one too
+				i++
+				if j < len(b) && unicode.IsSpace(rune(b[j])) {
+					j++
+					if i < len(a) && !unicode.IsSpace(rune(a[i])) {
+						// File has no more spaces; skip remaining pattern spaces
+						for j < len(b) && unicode.IsSpace(rune(b[j])) {
+							j++
+						}
+					}
+				} else {
+					return false
+				}
+				continue
+			}
+		}
+
+		// Handle optional compact whitespace (file spaces are optional)
+		if opts&model.STRING_OPTIONS_COMPACT_OPTIONAL_WHITESPACE != 0 {
+			if i < len(a) && unicode.IsSpace(rune(a[i])) {
+				i++
+				for j < len(b) && unicode.IsSpace(rune(b[j])) {
+					j++
+				}
+				continue
+			}
+		}
+
+		if i >= len(a) {
+			return false
+		}
+
 		ac := a[i]
-		bc := b[i]
+		bc := b[j]
 
 		if opts&model.STRING_OPTIONS_CASE_INSENSITIVE_LOWER != 0 && unicode.IsLower(rune(ac)) {
 			if unicode.ToLower(rune(bc)) != rune(ac) {
@@ -40,6 +76,8 @@ func compareStringWithFlags(a, b string, opts model.StringOptions) bool {
 				return false
 			}
 		}
+		i++
+		j++
 	}
 	return true
 }

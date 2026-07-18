@@ -242,9 +242,7 @@ func readStringOptions(stringOptionsRaw string) (model.StringOptions, error) {
 		case 's': // yes, it happens in the MagDir
 			stringOptions |= model.REGEX_OPTIONS_OFFSET_START
 		case 'w':
-			/* [FIXME]
-			>>0	string/w	#!\ 	a
-			*/
+			stringOptions |= model.STRING_OPTIONS_COMPACT_OPTIONAL_WHITESPACE
 		}
 	}
 	if unknown.Len() == 0 {
