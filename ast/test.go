@@ -196,6 +196,12 @@ func (t *TestResult) compare() (bool, bool, error) {
 	return ok, false, err
 }
 
+// cfmt converts C printf format specifiers to Go-compatible ones.
+func cfmt(format string) string {
+	// Go's fmt does not support %u; %d handles all integer types.
+	return strings.ReplaceAll(format, "%u", "%d")
+}
+
 func (t *TestResult) message() error {
 	if !t.test.Message.IsTemplate {
 		_, err := t.output.Write([]byte(t.test.Message.Value))
@@ -217,7 +223,7 @@ func (t *TestResult) message() error {
 		} else {
 			arg = t.test.Type.FilterBinaryArgument
 		}
-		_, err := fmt.Fprintf(t.output, t.test.Message.Value, arg)
+		_, err := fmt.Fprintf(t.output, cfmt(t.test.Message.Value), arg)
 		return err
 	case model.TYPE_FAMILY_STRING:
 		var arg string
@@ -231,7 +237,7 @@ func (t *TestResult) message() error {
 				arg = strings.TrimSpace(arg)
 			}
 		}
-		_, err := fmt.Fprintf(t.output, t.test.Message.Value, arg)
+		_, err := fmt.Fprintf(t.output, cfmt(t.test.Message.Value), arg)
 		return err
 	default:
 		return fmt.Errorf("unknown type for info: '%v'", t.test.Type.TypeFamily)
