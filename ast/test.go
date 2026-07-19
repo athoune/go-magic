@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -221,8 +222,8 @@ func (t *TestResult) compare() (bool, bool, error) {
 	case "use":
 		// It's just a GOTO
 		return false, true, nil
-	case "search": // [FIXME]
-		return false, true, errors.ErrUnsupported
+	case "search":
+		return t.compareSearch()
 	case "regex": // [FIXME]
 		return false, true, errors.ErrUnsupported
 	}
@@ -329,4 +330,41 @@ func (t *TestResult) message() error {
 	default:
 		return fmt.Errorf("unknown type for info: '%v'", t.test.Type.TypeFamily)
 	}
+}
+
+// compareSearch implements FILE_SEARCH: search for a pattern in a range of bytes.
+// C reference: softmagic.c magiccheck() case FILE_SEARCH
+func (t *TestResult) compareSearch() (bool, bool, error) {
+	// Read the file content from current offset
+	// In C, mcopy for FILE_SEARCH sets ms->search.s = s + offset
+	// with ms->search.s_len = nbytes - offset
+	pos, err := t.target.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return false, false, err
+	}
+
+	// Determine how many bytes to read
+	range_ := int(t.test.Type.SearchCount) // str_range
+	if range_ == 0 {
+		range_ = 4096 // default search range
+	}
+
+	buf := make([]byte, range_)
+	n, err := io.ReadAtLeast(t.target, buf, 1)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return false, false, err
+	}
+	buf = buf[:n]
+
+	// Search for the pattern
+	pattern := t.test.Compare.Expected.StringValue
+	idx := bytes.Index(buf, []byte(pattern))
+	if idx == -1 {
+		return false, false, nil
+	}
+
+	// Found: seek to the match position
+	_, _ = t.target.Seek(pos+int64(idx), io.SeekStart)
+	t.readValue = &model.Value{StringValue: string(buf[idx:])}
+	return true, false, nil
 }
