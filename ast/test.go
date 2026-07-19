@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -120,14 +121,95 @@ func (t *TestResult) action(a *model.Action) error {
 // offset seeks the target to the absolute offset
 func (t *TestResult) offset() {
 	if t.test.Offset.Relative {
-		// Relative offset: add to current position
-		_, _ = t.target.Seek(t.test.Offset.Value, io.SeekCurrent)
 		if t.test.Offset.Dynamic {
-			// TODO: handle dynamic relative offsets
+			// Dynamic relative offset: read a value at DynOffset, apply operation, use as absolute offset
+			computed, err := t.computeDynamicOffset()
+			if err == nil {
+				_, _ = t.target.Seek(computed, io.SeekStart)
+			}
+		} else {
+			// Simple relative offset: add to current position
+			_, _ = t.target.Seek(t.test.Offset.Value, io.SeekCurrent)
 		}
 	} else {
 		_, _ = t.target.Seek(t.test.Offset.Value, io.SeekStart)
 	}
+}
+
+// computeDynamicOffset reads a value at Offset.Value + DynOffset, applies DynOperator with DynArg,
+// and returns the result as a relative offset.
+// C reference: softmagic.c mget() INDIR + do_ops()
+func (t *TestResult) computeDynamicOffset() (int64, error) {
+	// Save current position
+	currentPos, err := t.target.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return 0, err
+	}
+
+	// Seek to the position where we read the indirect value
+	// In C: s + offset + off where offset is the magic entry's offset
+	readPos := t.test.Offset.Value + t.test.Offset.DynOffset
+	_, err = t.target.Seek(readPos, io.SeekStart)
+	if err != nil {
+		// Restore position on error
+		_, _ = t.target.Seek(currentPos, io.SeekStart)
+		return 0, err
+	}
+
+	// Read the value according to DynType
+	var lhs int64
+	switch t.test.Offset.DynType {
+	case 'b': // byte
+		var b byte
+		err = binary.Read(t.target, binary.NativeEndian, &b)
+		lhs = int64(b)
+	case 's': // short, native endian
+		var s int16
+		err = binary.Read(t.target, binary.NativeEndian, &s)
+		lhs = int64(s)
+	case 'S': // short, big endian
+		var s int16
+		err = binary.Read(t.target, binary.BigEndian, &s)
+		lhs = int64(s)
+	case 'l': // long, native endian
+		var l int32
+		err = binary.Read(t.target, binary.NativeEndian, &l)
+		lhs = int64(l)
+	case 'L': // long, big endian
+		var l int32
+		err = binary.Read(t.target, binary.BigEndian, &l)
+		lhs = int64(l)
+	case 'q': // quad, native endian
+		var q int64
+		err = binary.Read(t.target, binary.NativeEndian, &q)
+		lhs = q
+	case 'Q': // quad, big endian
+		var q int64
+		err = binary.Read(t.target, binary.BigEndian, &q)
+		lhs = q
+	default:
+		// Restore position on error
+		_, _ = t.target.Seek(currentPos, io.SeekStart)
+		return 0, fmt.Errorf("unsupported dynamic offset type: %c", t.test.Offset.DynType)
+	}
+
+	if err != nil {
+		// Restore position on error
+		_, _ = t.target.Seek(currentPos, io.SeekStart)
+		return 0, err
+	}
+
+	// Apply the operation (e.g., + - * / & | %)
+	result, err := operation.Operate(lhs, t.test.Offset.DynArg, t.test.Offset.DynOperator)
+	if err != nil {
+		// Restore position on error
+		_, _ = t.target.Seek(currentPos, io.SeekStart)
+		return 0, err
+	}
+
+	// Restore position before seeking
+	_, _ = t.target.Seek(currentPos, io.SeekStart)
+	return result, nil
 }
 
 // compare return compare result, is special and error
