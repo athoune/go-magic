@@ -3,9 +3,9 @@ package ast
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -224,8 +224,8 @@ func (t *TestResult) compare() (bool, bool, error) {
 		return false, true, nil
 	case "search":
 		return t.compareSearch()
-	case "regex": // [FIXME]
-		return false, true, errors.ErrUnsupported
+	case "regex":
+		return t.compareRegex()
 	}
 
 	value, _, err := unpack.ReadValue(t.test.Type, t.target)
@@ -366,5 +366,49 @@ func (t *TestResult) compareSearch() (bool, bool, error) {
 	// Found: seek to the match position
 	_, _ = t.target.Seek(pos+int64(idx), io.SeekStart)
 	t.readValue = &model.Value{StringValue: string(buf[idx:])}
+	return true, false, nil
+}
+
+// compareRegex implements FILE_REGEX: match a regular expression against file content.
+// C reference: softmagic.c magiccheck() case FILE_REGEX
+func (t *TestResult) compareRegex() (bool, bool, error) {
+	// Read the file content from current offset
+	pos, err := t.target.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return false, false, err
+	}
+
+	// Determine how many bytes to read
+	range_ := int(t.test.Type.SearchCount) // str_range
+	if range_ == 0 {
+		range_ = 8192 // default regex search range
+	}
+
+	buf := make([]byte, range_)
+	n, err := io.ReadAtLeast(t.target, buf, 1)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return false, false, err
+	}
+	buf = buf[:n]
+
+	// Compile and match the regex
+	pattern := t.test.Compare.Expected.StringValue
+	flags := ""
+	if t.test.Type.StringOptions&model.REGEX_OPTIONS_CASE_INSENSITIVE != 0 {
+		flags = "(?i)"
+	}
+	re, err := regexp.Compile(flags + pattern)
+	if err != nil {
+		return false, false, fmt.Errorf("regex compile: %w", err)
+	}
+
+	loc := re.FindIndex(buf)
+	if loc == nil {
+		return false, false, nil
+	}
+
+	// Found: seek to the match start
+	_, _ = t.target.Seek(pos+int64(loc[0]), io.SeekStart)
+	t.readValue = &model.Value{StringValue: string(buf[loc[0]:loc[1]])}
 	return true, false, nil
 }
