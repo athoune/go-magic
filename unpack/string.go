@@ -37,13 +37,20 @@ func BuildValueFromString(typ *model.Type, txt string) (*model.Value, error) {
 
 	case model.TYPE_FAMILY_INT:
 		txt = HandleNumberSuffix(txt)
+		negative := false
 		if strings.HasPrefix(txt, "-") {
-			v.IntValue, err = strconv.ParseInt(txt, 0, 64)
-		} else {
-			// [FIXME] ParseInt does handle well larges negatives numbers like 0xB7D800203749DA11
-			var uValue uint64
-			uValue, err = strconv.ParseUint(txt, 0, 64)
-			v.IntValue = int64(uValue)
+			negative = true
+			txt = txt[1:]
+		}
+		// Always parse as uint64 first, then cast to int64.
+		// This matches C behavior where the value is stored as uint64
+		// in the VALUETYPE union and sign-extended later by file_signextend().
+		// strconv.ParseInt fails for hex values > MaxInt64 (e.g. 0xB7D800203749DA11).
+		var uValue uint64
+		uValue, err = strconv.ParseUint(txt, 0, 64)
+		v.IntValue = int64(uValue)
+		if negative {
+			v.IntValue = -v.IntValue
 		}
 		return v, err
 
