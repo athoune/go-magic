@@ -1,6 +1,7 @@
 package unpack
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/athoune/go-magic/model"
@@ -47,4 +48,74 @@ func TestStringValue(t *testing.T) {
 	v, err = BuildValueFromString(typ, "-0x10")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(-16), v.IntValue)
+}
+
+func TestPString(t *testing.T) {
+	// PSTRING with 1-byte prefix, little endian
+	// Content: [5, 'h', 'e', 'l', 'l', 'o']
+	buf := bytes.NewBuffer(append([]byte{5}, []byte("hello")...))
+	typ := &model.Type{
+		Root:           "pstring",
+		TypeFamily:     model.TYPE_FAMILY_STRING,
+		StringIntOption: 1,
+		ByteOrder:      model.LITTLE_ENDIAN,
+	}
+	v, n, err := ReadValue(typ, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, 6, n) // 1 prefix + 5 content
+	assert.Equal(t, "hello", v.StringValue)
+
+	// PSTRING with 2-byte prefix, little endian
+	buf = bytes.NewBuffer([]byte{5, 0, 'h', 'e', 'l', 'l', 'o'})
+	typ = &model.Type{
+		Root:           "pstring",
+		TypeFamily:     model.TYPE_FAMILY_STRING,
+		StringIntOption: 2,
+		ByteOrder:      model.LITTLE_ENDIAN,
+	}
+	v, n, err = ReadValue(typ, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, 7, n) // 2 prefix + 5 content
+	assert.Equal(t, "hello", v.StringValue)
+
+	// PSTRING with 2-byte prefix, big endian
+	buf = bytes.NewBuffer([]byte{0, 5, 'h', 'e', 'l', 'l', 'o'})
+	typ = &model.Type{
+		Root:           "pstring",
+		TypeFamily:     model.TYPE_FAMILY_STRING,
+		StringIntOption: 2,
+		ByteOrder:      model.BIG_ENDIAN,
+	}
+	v, n, err = ReadValue(typ, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, 7, n)
+	assert.Equal(t, "hello", v.StringValue)
+
+	// PSTRING with /J (length includes itself)
+	// Length = 6 (includes 1-byte prefix), so content = 5 bytes
+	buf = bytes.NewBuffer(append([]byte{6}, []byte("hello")...))
+	typ = &model.Type{
+		Root:           "pstring",
+		TypeFamily:     model.TYPE_FAMILY_STRING,
+		StringIntOption: 1,
+		ByteOrder:      model.LITTLE_ENDIAN,
+		StringOptions:  model.PSTRING_OPTIONS_SIZE_INCLUDE,
+	}
+	v, n, err = ReadValue(typ, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, 6, n)
+	assert.Equal(t, "hello", v.StringValue)
+
+	// Empty pstring (length 0)
+	buf = bytes.NewBuffer([]byte{0, 'x', 'x', 'x'})
+	typ = &model.Type{
+		Root:           "pstring",
+		TypeFamily:     model.TYPE_FAMILY_STRING,
+		StringIntOption: 1,
+		ByteOrder:      model.LITTLE_ENDIAN,
+	}
+	v, n, err = ReadValue(typ, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, n) // only the prefix byte
+	assert.Equal(t, "", v.StringValue)
 }

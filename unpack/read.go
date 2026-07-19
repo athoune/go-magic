@@ -94,6 +94,9 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 		v.RawBinaryValue = uint64(v.IntValue)
 		return v, size, err
 	case model.TYPE_FAMILY_STRING:
+		if typ.Root == "pstring" {
+			return readPString(typ, r, bo)
+		}
 		// Read up to MAXstring bytes from the reader, like C's file_getbuffer
 		buf := make([]byte, MAXstring)
 		n, err := io.ReadAtLeast(r, buf, 1)
@@ -105,4 +108,60 @@ func ReadValue(typ *model.Type, r io.Reader) (*model.Value, int, error) {
 	default:
 		return nil, 0, fmt.Errorf("wrong type: %s", typ.Root)
 	}
+}
+
+// readPString reads a Pascal string: a length prefix followed by the string content.
+// C reference: softmagic.c mprint() case FILE_PSTRING
+func readPString(typ *model.Type, r io.Reader, bo binary.ByteOrder) (*model.Value, int, error) {
+	v := &model.Value{Family: model.TYPE_FAMILY_STRING}
+
+	// Read the length prefix (1, 2, or 4 bytes)
+	prefixSize := typ.StringIntOption
+	if prefixSize == 0 {
+		prefixSize = 1 // default: 1-byte length
+	}
+
+	prefixBuf := make([]byte, prefixSize)
+	if _, err := io.ReadFull(r, prefixBuf); err != nil {
+		return nil, 0, fmt.Errorf("pstring prefix read: %w", err)
+	}
+
+	// Decode the length from the prefix
+	var strLen uint64
+	switch prefixSize {
+	case 1:
+		strLen = uint64(prefixBuf[0])
+	case 2:
+		strLen = uint64(bo.Uint16(prefixBuf))
+	case 4:
+		strLen = uint64(bo.Uint32(prefixBuf))
+	default:
+		return nil, 0, fmt.Errorf("unsupported pstring prefix size: %d", prefixSize)
+	}
+
+	// If PSTRING_LENGTH_INCLUDES_ITSELF, subtract the prefix size
+	if typ.StringOptions&model.PSTRING_OPTIONS_SIZE_INCLUDE != 0 {
+		strLen -= uint64(prefixSize)
+	}
+
+	// Cap at MAXstring like C does (sizeof(p->s) - sz)
+	maxContent := MAXstring - prefixSize
+	if strLen > uint64(maxContent) {
+		strLen = uint64(maxContent)
+	}
+
+	// Read the string content
+	if strLen == 0 {
+		v.StringValue = ""
+		return v, prefixSize, nil
+	}
+
+	contentBuf := make([]byte, strLen)
+	n, err := io.ReadFull(r, contentBuf)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return nil, 0, fmt.Errorf("pstring content read: %w", err)
+	}
+
+	v.StringValue = string(contentBuf[:n])
+	return v, prefixSize + n, nil
 }
